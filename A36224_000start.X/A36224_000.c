@@ -36,9 +36,10 @@ void DoStateMachine(void){
     switch(control_state){
         case STATE_STARTUP:
             InitializeA36224();
-            control_state=STATE_WAITING_FOR_CONFIG;
+            control_state=STATE_OPERATE;
             break;
-        case STATE_WAITING_FOR_CONFIG:
+
+     /*   case STATE_WAITING_FOR_CONFIG:
             ETMCanSetBit(&etm_can_status_register.status_word_0, STATUS_BIT_BOARD_WAITING_INITIAL_CONFIG);
             while (control_state == STATE_WAITING_FOR_CONFIG) {
               DoA36224_000();
@@ -53,10 +54,16 @@ void DoStateMachine(void){
               }
             }
             break;
+*/
+        case STATE_OPERATE:
+            DoA36224_000();
+            ETMCanDoCan();
 
-                default:
-                    control_state = STATE_STARTUP;
-                    break;
+            break;
+
+        default:
+            control_state = STATE_STARTUP;
+            break;
 
 
     }
@@ -69,6 +76,7 @@ void DoA36224_000(){
     //Set Fault if there is not sufficient water flow
 
     //Convert temperature sensors to digital
+    //This will require some work. The sensors are non linear, Maarten says 5th order poly
     //Cabinet
     //Coolant
     //Linac
@@ -90,7 +98,6 @@ void DoA36224_000(){
     //Tell solenoid valve to open or close?
 
     //CAN update stuff?
-    ETMCanDoCan();
 }
 
 void InitializeA36224(){

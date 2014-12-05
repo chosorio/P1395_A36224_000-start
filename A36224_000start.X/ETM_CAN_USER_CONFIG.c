@@ -1,9 +1,9 @@
 #include "ETM_CAN.h"
-
+/*
 #ifdef __A36224_500
 #include "A36224_500.h"
 #endif
-
+*/
 
 
 void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
@@ -13,7 +13,7 @@ void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
     /*
       Place all board specific set values here
     */
-
+/*
 #ifdef __A36224_500
   case ETM_CAN_REGISTER_HEATER_MAGNET_SET_1_CURRENT_SET_POINT:
     ETMAnalogSetOutput(&global_data_A36224_500.analog_output_heater_current, message_ptr->word1);
@@ -21,7 +21,7 @@ void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
     break;
 
 #endif
-
+*/
 
 #ifdef __A_WHATEVER_HV_LAMBDA_IS
   case ETM_CAN_REGISTER_HV_LAMBDA_SET_1_LAMBDA_SET_POINT:
@@ -50,6 +50,7 @@ void ETMCanExecuteCMDBoardSpecific(ETMCanMessage* message_ptr) {
       /*
 	Place all board specific commands here
       */
+/*
 #ifdef __A36224_500
     case ETM_CAN_REGISTER_HEATER_MAGNET_CMD_OUTPUT_ENABLE:
       ETMCanClearBit(&etm_can_status_register.status_word_0, STATUS_BIT_SOFTWARE_DISABLE); 
@@ -60,7 +61,7 @@ void ETMCanExecuteCMDBoardSpecific(ETMCanMessage* message_ptr) {
       ETMCanSetBit(&etm_can_status_register.status_word_0, STATUS_BIT_SOFTWARE_DISABLE);
     break;
 #endif
-    
+  */
     
     
 #ifdef __A_WHATEVER_HV_LAMBDA_IS
@@ -112,6 +113,7 @@ void ETMCanLogCustomPacketC(void) {
      Use this to log Board specific data packet
      This will get executed once per update cycle (1.6 seconds) and will be spaced out in time from the other log data
   */
+/*
 #ifdef __A36224_500
   ETMCanLogData(
 		ETM_CAN_DATA_LOG_REGISTER_HEATER_MAGNET_SLOW_READINGS, 
@@ -121,7 +123,7 @@ void ETMCanLogCustomPacketC(void) {
 		global_data_A36224_500.analog_input_electromagnet_voltage.reading_scaled_and_calibrated
 		);
 #endif
-
+*/
 
 
 }
@@ -131,7 +133,8 @@ void ETMCanLogCustomPacketD(void) {
      Use this to log Board specific data packet
      This will get executed once per update cycle (1.6 seconds) and will be spaced out in time from the other log data
   */
-#ifdef __A36224_500
+
+/*#ifdef __A36224_500
   ETMCanLogData(
 		ETM_CAN_DATA_LOG_REGISTER_HEATER_MAGNET_SLOW_SET_POINTS, 
 		global_data_A36224_500.analog_output_heater_current.set_point,
@@ -140,7 +143,7 @@ void ETMCanLogCustomPacketD(void) {
 		0
 		);
 #endif
-
+*/
 }
 
 void ETMCanLogCustomPacketE(void) {
