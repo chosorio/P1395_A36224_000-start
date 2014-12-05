@@ -97,7 +97,7 @@ void DoA36224_000(){
 
     //Tell solenoid valve to open or close?
 
-    //CAN update stuff?
+    //CAN update stuff? Nope. do that in state machine.
 }
 
 void InitializeA36224(){
@@ -293,6 +293,25 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_SF6_pressure.adc_accumulator  += ADCBUFF;
     }
 
+
+    //etm_can_system_debug_data.debug_0 = ADCBUF0; //Why was this commented out? Ask Dan?
+    etm_can_system_debug_data.debug_1 = ADCBUF1;
+    etm_can_system_debug_data.debug_2 = ADCBUF2;
+    etm_can_system_debug_data.debug_3 = ADCBUF3;
+    etm_can_system_debug_data.debug_4 = ADCBUF4;
+    etm_can_system_debug_data.debug_5 = ADCBUF5;
+    etm_can_system_debug_data.debug_6 = ADCBUF6;
+    etm_can_system_debug_data.debug_7 = ADCBUF7;
+    etm_can_system_debug_data.debug_8 = ADCBUF8;
+    etm_can_system_debug_data.debug_9 = ADCBUF9;
+    etm_can_system_debug_data.debug_A = ADCBUFA;
+    etm_can_system_debug_data.debug_B = ADCBUFB;
+    etm_can_system_debug_data.debug_C = ADCBUFC;
+    etm_can_system_debug_data.debug_D = ADCBUFD;
+    etm_can_system_debug_data.debug_E = ADCBUFE;
+    etm_can_system_debug_data.debug_F = ADCBUFF;
+
+
     global_data_A36224_000.accumulator_counter += 1;
 
     //Changed to check after 128. This should make the timing the same as the heater/magnet board ~10ms.
@@ -332,6 +351,7 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
 
       global_data_A36224_000.accumulator_counter = 0;
     }
+
   }
 
 
