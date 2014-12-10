@@ -22,7 +22,7 @@ CoolingControlData global_data_A36224_000;
 unsigned int control_state;
 //Any reason for the numbering?
 #define STATE_STARTUP                0x10
-#define STATE_WAITING_FOR_CONFIG     0x20
+//#define STATE_WAITING_FOR_CONFIG     0x20
 #define STATE_OPERATE                0x30
 
 int main(void) {
@@ -68,36 +68,72 @@ void DoStateMachine(void){
 
     }
 }
-//Not sure what to do here yet. I'm guessing its a lot of can stuff.
+
 void DoA36224_000(){
 
-    //Convert Flow Meter readings to flow data
 
-    //Set Fault if there is not sufficient water flow
+    //Convert Flow Meter readings to flow data
+    ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_0);
+    ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_1);
+    ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_2);
+   // ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_3);//These aren't actually used. no need to scale garbage values.
+   // ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_4);
+
 
     //Convert temperature sensors to digital
     //This will require some work. The sensors are non linear, Maarten says 5th order poly
     //Cabinet
     //Coolant
-    //Linac
 
-    //Set fault if temperature too high
+    // Flash the Refresh
+    if (PIN_D_OUT_REFRESH) {
+      PIN_D_OUT_REFRESH = 0;
+    } else {
+      PIN_D_OUT_REFRESH = 1;
+    }
 
     //Convert SF6 pressure sensor to digital
+    ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_SF6_pressure);
+
+    // -------------------- CHECK FOR FAULTS ------------------- //
+
+ 
+    if (global_reset_faults) {
+      etm_can_system_debug_data.debug_0++;
+      etm_can_status_register.status_word_1 = 0x0000;
+      global_reset_faults = 0;
+    }
 
     //Set fault if SF6 Pressure too low
 
+    //Can we change the ETMAnalog fault checking so it just checks all of the faults?
+    //This board's faults aren't very specific. It just throws if its out of range.
+    
+    if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
+        //Set Fault if there is not sufficient coolant flow
+        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+    }
+
+    if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_cabinet_temp)) {
+        //Set Fault if cabinet temperature too high
+        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMP_ANALOG);
+    }
+
+    if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
+        //Set Fault if cabinet temperature too high
+        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_ANALOG);
+    }
     //Check temperature switch
-    //Do something with it?
-
-    //Check SF6 Pressure switch
-    //Do something with it?
-
+    //Set fault bit if the switch has opened
+    if (PIN_D_IN_1_CABINET_TEMP_SWITCH == CABINET_TEMP_SWITCH_FAULT) {
+      ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
+    } else {
+      ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
+    }
     //Update Solenoid valve status?
 
     //Tell solenoid valve to open or close?
 
-    //CAN update stuff? Nope. do that in state machine.
 }
 
 void InitializeA36224(){
@@ -156,6 +192,28 @@ void InitializeA36224(){
   global_data_A36224_000.analog_input_SF6_pressure.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_SF6_pressure.calibration_external_offset     = 0;
 
+
+  global_data_A36224_000.analog_output_coolant_thermistor.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
+  global_data_A36224_000.analog_output_coolant_thermistor.fixed_offset                    = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
+
+  global_data_A36224_000.analog_output_coolant_thermistor.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
+  global_data_A36224_000.analog_output_coolant_thermistor.fixed_offset                    = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
+
+  global_data_A36224_000.analog_output_coolant_thermistor.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
+  global_data_A36224_000.analog_output_coolant_thermistor.fixed_offset                    = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
+  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
+
   etm_can_status_register.status_word_0 = 0x0000;
   etm_can_status_register.status_word_1 = 0x0000;
   etm_can_status_register.data_word_A = 0x0000;
@@ -165,10 +223,18 @@ void InitializeA36224(){
 
 
   //Set up outputs as supplies for switches and thermistors
-  /*
-   * Need to know which outputs we're using. Right now, its analog out 0 and 1, but I'd rather use digital
-   *
-   */
+        // Set DAC outputs
+       //Analog Out 0
+      ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_temp_switch);
+      WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_temp_switch.dac_setting_scaled_and_calibrated>>4);
+      //Analog Out 1
+      ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_thermistor);
+      WriteMCP4822(&U44_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_thermistor.dac_setting_scaled_and_calibrated>>4);
+      //Analog Out 2
+      ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_coolant_thermistor);
+      WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_B_4096, global_data_A36224_000.analog_output_coolant_thermistor.dac_setting_scaled_and_calibrated>>4);
+
+
 
   // Configure Inhibit Interrupt
   //I don't think that inhibit matters for this board. Do we ever turn cooling off?

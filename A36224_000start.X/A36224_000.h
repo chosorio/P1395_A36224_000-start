@@ -208,15 +208,15 @@
 //#define ILL_POWER_SUPPLY_DISABLED                  1
 //#define ILL_RELAY_OPEN                             1
 //#define ILL_HEATER_OV                              0
-//#define ILL_TEMP_SWITCH_FAULT                      0
+#define CABINET_TEMP_SWITCH_FAULT                      0
 
 
 // ------- Digital Output Pins ---------//
 
 #define PIN_D_OUT_0_SOLENOID_RELAY                 _LATD0
 #define PIN_D_OUT_1_OUTPUT_RELAY_1                 _LATD1
-#define PIN_D_OUT_4_REFRESH                        _LATD4
-#define OLL_CLOSE_RELAY                            1
+#define PIN_D_OUT_REFRESH                        _LATD4
+//#define OLL_CLOSE_RELAY                            1
 
 
 #define PIN_D_OUT_2_UNUSED                         _LATD2
@@ -240,17 +240,18 @@ typedef struct {
   AnalogInput analog_input_flow_0;
   AnalogInput analog_input_flow_1;
   AnalogInput analog_input_flow_2;
-  AnalogInput analog_input_flow_3;
-  AnalogInput analog_input_flow_4;
+  AnalogInput analog_input_flow_3; //Not used, but keeping as placeholders
+  AnalogInput analog_input_flow_4; //not used, placeholder
 
 
   AnalogInput analog_input_coolant_temp;
   AnalogInput analog_input_cabinet_temp;
   AnalogInput analog_input_SF6_pressure;
-/*
-  AnalogOutput analog_output_heater_current;
-  AnalogOutput analog_output_electromagnet_current;
-*/
+
+  AnalogOutput analog_output_cabinet_temp_switch;
+  AnalogOutput analog_output_coolant_thermistor;
+  AnalogOutput analog_output_cabinet_thermistor;
+
   unsigned int  accumulator_counter;
 
  // unsigned int  adc_ignore_current_sample;
@@ -267,3 +268,5 @@ extern CoolingControlData global_data_A36224_000;
 #define COOLANT_TEMP_SCALE_FACTOR           5.55 //NOT THE ACTUAL VALUE. PLACEHOLDER
 #define CABINET_TEMP_SCALE_FACTOR           5.55 //PLACEHOLDER
 #define SF6_PRESSURE_SCALE_FACTOR           5.55 //PLACEHOLDER
+#define ANALOG_OUT_SCALE_FACTOR             2 //Check this. It should be on internal scale, but that requires a smaller number
+#define ANALOG_OUT_INTERNAL_SCALE           1  

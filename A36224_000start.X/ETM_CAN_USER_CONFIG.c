@@ -1,10 +1,14 @@
 #include "ETM_CAN.h"
-/*
-#ifdef __A36224_500
-#include "A36224_500.h"
-#endif
-*/
 
+#ifdef __A36224_000
+#include "A36224_000.h"
+#endif
+
+#ifdef __A36444
+#include "A36444.h"
+#endif
+
+unsigned int global_reset_faults;
 
 void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
   unsigned int index_word;
@@ -13,7 +17,7 @@ void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
     /*
       Place all board specific set values here
     */
-/*
+
 #ifdef __A36224_500
   case ETM_CAN_REGISTER_HEATER_MAGNET_SET_1_CURRENT_SET_POINT:
     ETMAnalogSetOutput(&global_data_A36224_500.analog_output_heater_current, message_ptr->word1);
@@ -21,7 +25,7 @@ void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
     break;
 
 #endif
-*/
+
 
 #ifdef __A_WHATEVER_HV_LAMBDA_IS
   case ETM_CAN_REGISTER_HV_LAMBDA_SET_1_LAMBDA_SET_POINT:
@@ -37,7 +41,10 @@ void ETMCanSetValueBoardSpecific(ETMCanMessage* message_ptr) {
   }
 }
 
-
+void ETMCanResetFaults(void) {
+  // Reset faults associated with this board
+  global_reset_faults = 1;
+}
 
 
 #ifndef __ETM_CAN_MASTER_MODULE
@@ -50,7 +57,7 @@ void ETMCanExecuteCMDBoardSpecific(ETMCanMessage* message_ptr) {
       /*
 	Place all board specific commands here
       */
-/*
+
 #ifdef __A36224_500
     case ETM_CAN_REGISTER_HEATER_MAGNET_CMD_OUTPUT_ENABLE:
       ETMCanClearBit(&etm_can_status_register.status_word_0, STATUS_BIT_SOFTWARE_DISABLE); 
@@ -61,7 +68,7 @@ void ETMCanExecuteCMDBoardSpecific(ETMCanMessage* message_ptr) {
       ETMCanSetBit(&etm_can_status_register.status_word_0, STATUS_BIT_SOFTWARE_DISABLE);
     break;
 #endif
-  */
+  
     
     
 #ifdef __A_WHATEVER_HV_LAMBDA_IS
@@ -103,9 +110,6 @@ void ETMCanReturnValueBoardSpecific(ETMCanMessage* message_ptr) {
 }
 
 
-void ETMCanResetFaults(void) {
-  // Reset faults associated with this board
-}
 
 
 void ETMCanLogCustomPacketC(void) {

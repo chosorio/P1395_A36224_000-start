@@ -2,15 +2,15 @@
 #define __ETM_CAN_USER_CONFIG_H
 
 
-#define __A36224_500
+#define __A36224_000
 
 
 
-#ifdef __A36224_500
+#ifdef __A36224_000
 #define __USE_CAN_2
 #define FCY_CLK                             10000000      // 10 MHz
 #define FCY_CLK_MHZ                         10.000        // 10 MHz
-#define ETM_CAN_MY_ADDRESS                  ETM_CAN_ADDR_HEATER_MAGNET_BOARD
+#define ETM_CAN_MY_ADDRESS                  ETM_CAN_ADDR_COOLING_INTERFACE_BOARD
 #define PIN_CAN_OPERATION_LED               _LATC4
 #define ETM_CAN_INTERRUPT_PRIORITY          4
 #endif
