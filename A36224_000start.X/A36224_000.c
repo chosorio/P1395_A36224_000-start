@@ -1,6 +1,6 @@
 #include "A36224_000.h"
 #include "MCP4822.h"
-
+#include "THERMISTOR_LOOKUP.h"
 _FOSC(ECIO & CSW_FSCM_OFF); 
 _FWDT(WDT_ON & WDTPSA_64 & WDTPSB_8);  // 1 Second watchdog timer 
 _FBORPOR(PWRT_OFF & BORV_45 & PBOR_OFF & MCLR_EN);
@@ -81,7 +81,22 @@ void DoA36224_000(){
 
 
     //Convert temperature sensors to digital
-    //This will require some work. The sensors are non linear, Maarten says 5th order poly
+    //This will require some work. The sensors are non linear
+    //Going with an 8 bit lookup table, then using linear interpolation to fill in the gaps.
+
+    //Get ADC output
+    global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated=ConvertDigitalToTemp(global_data_A36224_000.analog_input_cabinet_temp.filtered_adc_reading);
+    //bitshift by 4 to the right (12 bit to 8 bit)
+
+    //Lookup in table. Take the value and the one after.
+
+    //mask to get the last 4 bits of the ADC output
+
+    //interpolate
+
+    //save
+
+
     //Cabinet
     //Coolant
 

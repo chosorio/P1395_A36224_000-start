@@ -314,3 +314,14 @@ for(i=1:length(youtspline))
 end
 
 plot(xout,yout);
+
+bits8=0:2^8-1;
+temps8=interp1(bitshift(xout,-4),yout,bits8,"linear");
+%Lookup table is degrees C * 100
+templookupint16=int16(temps8*100);
+
+
+fileID=fopen("ThermistorLookupTable.txt",'w');
+nbytes=fprintf(fileID,'%d,',templookupint16)
+fclose(fileID);
+plot(bits8,temps8);

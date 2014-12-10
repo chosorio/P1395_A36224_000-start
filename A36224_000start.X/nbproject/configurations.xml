@@ -14,6 +14,7 @@
       <itemPath>ETM_SCALE.h</itemPath>
       <itemPath>ETM_SPI.h</itemPath>
       <itemPath>MCP4822.h</itemPath>
+      <itemPath>THERMISTOR_LOOKUP.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -31,6 +32,7 @@
       <itemPath>ETM_IO_PORTS.s</itemPath>
       <itemPath>ETM_SCALE.s</itemPath>
       <itemPath>ETM_CAN_USER_CONFIG.c</itemPath>
+      <itemPath>THERMISTOR_LOOKUP.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
