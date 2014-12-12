@@ -59,7 +59,7 @@
 #define PIN_A_IN_SF6_PRESSURE                   _RB10
 /*
   This sets up the ADC to work as following
-  AUTO Sampeling
+  AUTO Sampling
   VDD / GND as reference
   
   With 10MHz System Clock, ADC Clock is 450ns, Sample Time is 4 ADC Clock so total sample time is 9uS
@@ -75,7 +75,7 @@
 #define ADCON3_SETTING          (ADC_SAMPLE_TIME_4 & ADC_CONV_CLK_SYSTEM & ADC_CONV_CLK_9Tcy2)
 #define ADCHS_SETTING           (ADC_CH0_POS_SAMPLEA_AN2 & ADC_CH0_NEG_SAMPLEA_VREFN & ADC_CH0_POS_SAMPLEB_AN2 & ADC_CH0_NEG_SAMPLEB_VREFN) //Why AN3? Shouldn't it just be a ground or negative rail?
 #define ADPCFG_SETTING          (ENABLE_AN2_ANA & ENABLE_AN3_ANA & ENABLE_AN4_ANA & ENABLE_AN5_ANA & ENABLE_AN6_ANA & ENABLE_AN7_ANA & ENABLE_AN8_ANA & ENABLE_AN9_ANA & ENABLE_AN10_ANA & ENABLE_AN11_ANA)
-#define ADCSSL_SETTING          (SKIP_SCAN_AN7 & SKIP_SCAN_AN11) //Modified to skip unused inputs
+#define ADCSSL_SETTING          (SKIP_SCAN_AN0 & SKIP_SCAN_AN1 & SKIP_SCAN_AN7 & SKIP_SCAN_AN11 & SKIP_SCAN_AN12 & SKIP_SCAN_AN13 & SKIP_SCAN_AN14 &SKIP_SCAN_AN15) //Modified to skip unused inputs
 
 
 
