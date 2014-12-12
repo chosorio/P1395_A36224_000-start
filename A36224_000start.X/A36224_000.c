@@ -84,21 +84,11 @@ void DoA36224_000(){
     //This will require some work. The sensors are non linear
     //Going with an 8 bit lookup table, then using linear interpolation to fill in the gaps.
 
-    //Get ADC output
-    global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated=ConvertDigitalToTemp(global_data_A36224_000.analog_input_cabinet_temp.filtered_adc_reading);
-    //bitshift by 4 to the right (12 bit to 8 bit)
-
-    //Lookup in table. Take the value and the one after.
-
-    //mask to get the last 4 bits of the ADC output
-
-    //interpolate
-
-    //save
-
-
+    //Convert Temperature readings
     //Cabinet
+    global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated=ConvertDigitalToTemp(global_data_A36224_000.analog_input_cabinet_temp.filtered_adc_reading);
     //Coolant
+    global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated=ConvertDigitalToTemp(global_data_A36224_000.analog_input_coolant_temp.filtered_adc_reading);
 
     // Flash the Refresh
     if (PIN_D_OUT_REFRESH) {
@@ -108,6 +98,7 @@ void DoA36224_000(){
     }
 
     //Convert SF6 pressure sensor to digital
+    //need to find correct scaling factors
     ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_SF6_pressure);
 
     // -------------------- CHECK FOR FAULTS ------------------- //
@@ -201,7 +192,7 @@ void InitializeA36224(){
   global_data_A36224_000.analog_input_cabinet_temp.calibration_external_offset     = 0;
 
   global_data_A36224_000.analog_input_SF6_pressure.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(SF6_PRESSURE_SCALE_FACTOR);
-  global_data_A36224_000.analog_input_SF6_pressure.fixed_offset                    = 0;
+  global_data_A36224_000.analog_input_SF6_pressure.fixed_offset                    = SF6_PRESSURE_OFFSET;
   global_data_A36224_000.analog_input_SF6_pressure.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_SF6_pressure.calibration_internal_offset     = 0;
   global_data_A36224_000.analog_input_SF6_pressure.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
@@ -214,20 +205,27 @@ void InitializeA36224(){
   global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
   global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
+  global_data_A36224_000.analog_output_coolant_thermistor.set_point                       = 4096;
+  global_data_A36224_000.analog_output_coolant_thermistor.enabled                         = 1;
 
-  global_data_A36224_000.analog_output_coolant_thermistor.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
-  global_data_A36224_000.analog_output_coolant_thermistor.fixed_offset                    = 0;
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
+  global_data_A36224_000.analog_output_cabinet_temp_switch.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
+  global_data_A36224_000.analog_output_cabinet_temp_switch.fixed_offset                    = 0;
+  global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
+  global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_internal_offset     = 0;
+  global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
+  global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_external_offset     = 0;
+  global_data_A36224_000.analog_output_cabinet_temp_switch.set_point                       = 4096;
+  global_data_A36224_000.analog_output_cabinet_temp_switch.enabled                         = 1;
 
-  global_data_A36224_000.analog_output_coolant_thermistor.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
-  global_data_A36224_000.analog_output_coolant_thermistor.fixed_offset                    = 0;
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
-  global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
+
+  global_data_A36224_000.analog_output_cabinet_thermistor.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
+  global_data_A36224_000.analog_output_cabinet_thermistor.fixed_offset                    = 0;
+  global_data_A36224_000.analog_output_cabinet_thermistor.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(ANALOG_OUT_INTERNAL_SCALE);
+  global_data_A36224_000.analog_output_cabinet_thermistor.calibration_internal_offset     = 0;
+  global_data_A36224_000.analog_output_cabinet_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
+  global_data_A36224_000.analog_output_cabinet_thermistor.calibration_external_offset     = 0;
+  global_data_A36224_000.analog_output_cabinet_thermistor.set_point                       = 4096;
+  global_data_A36224_000.analog_output_cabinet_thermistor.enabled                         = 1;
 
   etm_can_status_register.status_word_0 = 0x0000;
   etm_can_status_register.status_word_1 = 0x0000;
@@ -237,17 +235,39 @@ void InitializeA36224(){
   etm_can_status_register.status_word_1_fault_mask  = 0b0001111111111111;  // DParker move this to #define somewhere
 
 
+  // Initialize Both MCP4822 DACs
+  U42_MCP4822.pin_chip_select_not = _PIN_RD14;
+  U42_MCP4822.pin_load_dac_not = _PIN_RF5;
+  U42_MCP4822.spi_port = ETM_SPI_PORT_2;
+  U42_MCP4822.spi_con1_value = MCP4822_SPI_CON_VALUE;
+  U42_MCP4822.spi_con2_value = MCP4822_SPI_CON2_VALUE;
+  U42_MCP4822.spi_stat_value = MCP4822_SPI_STAT_VALUE;
+  U42_MCP4822.spi_bit_rate = MCP4822_SPI_1_M_BIT;
+  U42_MCP4822.fcy_clk = FCY_CLK;
+
+  U44_MCP4822.pin_chip_select_not = _PIN_RD15;
+  U44_MCP4822.pin_load_dac_not = _PIN_RF5;
+  U44_MCP4822.spi_port = U42_MCP4822.spi_port;
+  U44_MCP4822.spi_con1_value = U42_MCP4822.spi_con1_value;
+  U44_MCP4822.spi_con2_value = U42_MCP4822.spi_con2_value;
+  U44_MCP4822.spi_stat_value = U42_MCP4822.spi_stat_value;
+  U44_MCP4822.spi_bit_rate = U42_MCP4822.spi_bit_rate;
+  U44_MCP4822.fcy_clk = U42_MCP4822.fcy_clk;
+
+  SetupMCP4822(&U42_MCP4822);
+  SetupMCP4822(&U44_MCP4822);
+
   //Set up outputs as supplies for switches and thermistors
         // Set DAC outputs
        //Analog Out 0
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_temp_switch);
-      WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_temp_switch.dac_setting_scaled_and_calibrated>>4);
+      WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_temp_switch.dac_setting_scaled_and_calibrated);
       //Analog Out 1
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_thermistor);
-      WriteMCP4822(&U44_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_thermistor.dac_setting_scaled_and_calibrated>>4);
+      WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_B_4096, global_data_A36224_000.analog_output_cabinet_thermistor.dac_setting_scaled_and_calibrated);
       //Analog Out 2
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_coolant_thermistor);
-      WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_B_4096, global_data_A36224_000.analog_output_coolant_thermistor.dac_setting_scaled_and_calibrated>>4);
+      WriteMCP4822(&U44_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_coolant_thermistor.dac_setting_scaled_and_calibrated);
 
 
 
@@ -289,27 +309,6 @@ void InitializeA36224(){
 
 
 
-  // Initialize Both MCP4822 DACs
-  U42_MCP4822.pin_chip_select_not = _PIN_RD14;
-  U42_MCP4822.pin_load_dac_not = _PIN_RF5;
-  U42_MCP4822.spi_port = ETM_SPI_PORT_2;
-  U42_MCP4822.spi_con1_value = MCP4822_SPI_CON_VALUE;
-  U42_MCP4822.spi_con2_value = MCP4822_SPI_CON2_VALUE;
-  U42_MCP4822.spi_stat_value = MCP4822_SPI_STAT_VALUE;
-  U42_MCP4822.spi_bit_rate = MCP4822_SPI_1_M_BIT;
-  U42_MCP4822.fcy_clk = FCY_CLK;
-
-  U44_MCP4822.pin_chip_select_not = _PIN_RD15;
-  U44_MCP4822.pin_load_dac_not = _PIN_RF5;
-  U44_MCP4822.spi_port = U42_MCP4822.spi_port;
-  U44_MCP4822.spi_con1_value = U42_MCP4822.spi_con1_value;
-  U44_MCP4822.spi_con2_value = U42_MCP4822.spi_con2_value;
-  U44_MCP4822.spi_stat_value = U42_MCP4822.spi_stat_value;
-  U44_MCP4822.spi_bit_rate = U42_MCP4822.spi_bit_rate;
-  U44_MCP4822.fcy_clk = U42_MCP4822.fcy_clk;
-
-  SetupMCP4822(&U42_MCP4822);
-  SetupMCP4822(&U44_MCP4822);
 
   // Initialize the CAN module
   ETMCanInitialize();

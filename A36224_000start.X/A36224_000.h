@@ -265,8 +265,9 @@ extern CoolingControlData global_data_A36224_000;
 #endif
 
 #define FLOWMETER_SCALE_FACTOR              .1431 //Converts to milliGPM
-#define COOLANT_TEMP_SCALE_FACTOR           5.55 //NOT THE ACTUAL VALUE. PLACEHOLDER
-#define CABINET_TEMP_SCALE_FACTOR           5.55 //PLACEHOLDER
-#define SF6_PRESSURE_SCALE_FACTOR           5.55 //PLACEHOLDER
-#define ANALOG_OUT_SCALE_FACTOR             2 //Check this. It should be on internal scale, but that requires a smaller number
+#define COOLANT_TEMP_SCALE_FACTOR           5.55 //Unused
+#define CABINET_TEMP_SCALE_FACTOR           5.55 //Unused
+#define SF6_PRESSURE_SCALE_FACTOR           2.3842 //Untested, but should be good. Converts to milliPSI
+#define SF6_PRESSURE_OFFSET                 10486
+#define ANALOG_OUT_SCALE_FACTOR             .5 //This works. Converts mV to Volts for Analog outputs
 #define ANALOG_OUT_INTERNAL_SCALE           1  
