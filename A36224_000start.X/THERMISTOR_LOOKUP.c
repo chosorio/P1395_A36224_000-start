@@ -13,8 +13,8 @@ unsigned int ConvertDigitalToTemp(unsigned int digital_in){
     int base=lookup[lookup_index];
     int next=lookup[lookup_index+1];
     //interpolate data
-    int numerator= digital_in&&0xF;
-    int denominator=0x10;
+    int numerator= digital_in&0xFF;
+    int denominator=0x100;
     //Doing the ratio this way should be fine, as we have a 32 bit ALU.
     int adder=(next-base)*numerator/denominator;
     return base+adder;
