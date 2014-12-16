@@ -205,7 +205,7 @@ void InitializeA36224(){
   global_data_A36224_000.analog_output_coolant_thermistor.calibration_internal_offset     = 0;
   global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_output_coolant_thermistor.calibration_external_offset     = 0;
-  global_data_A36224_000.analog_output_coolant_thermistor.set_point                       = 4096;
+  global_data_A36224_000.analog_output_coolant_thermistor.set_point                       = 4096; //4.096 Volts
   global_data_A36224_000.analog_output_coolant_thermistor.enabled                         = 1;
 
   global_data_A36224_000.analog_output_cabinet_temp_switch.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(ANALOG_OUT_SCALE_FACTOR);
