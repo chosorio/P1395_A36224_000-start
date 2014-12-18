@@ -39,22 +39,6 @@ void DoStateMachine(void){
             control_state=STATE_OPERATE;
             break;
 
-     /*   case STATE_WAITING_FOR_CONFIG:
-            ETMCanSetBit(&etm_can_status_register.status_word_0, STATUS_BIT_BOARD_WAITING_INITIAL_CONFIG);
-            while (control_state == STATE_WAITING_FOR_CONFIG) {
-              DoA36224_000();
-              ETMCanDoCan();
-
-              if (!ETMCanCheckBit(etm_can_status_register.status_word_0, STATUS_BIT_BOARD_WAITING_INITIAL_CONFIG)) {
-                control_state = STATE_OPERATE;
-              }
-//What should this board do in a fault state? Should it just operate? Does it even really need config?
-              if (ETMCanCheckBit(etm_can_status_register.status_word_0, STATUS_BIT_SUM_FAULT)) {
-                control_state = STATE_STARTUP;
-              }
-            }
-            break;
-*/
         case STATE_OPERATE:
             DoA36224_000();
             ETMCanDoCan();
@@ -109,15 +93,33 @@ void DoA36224_000(){
       etm_can_status_register.status_word_1 = 0x0000;
       global_reset_faults = 0;
     }
-
-    //Set fault if SF6 Pressure too low
-
-    //Can we change the ETMAnalog fault checking so it just checks all of the faults?
-    //This board's faults aren't very specific. It just throws if its out of range.
     
+    // Set the fault LED
+    if (etm_can_status_register.status_word_0 & 0x0001) {
+      // The board is faulted
+      PIN_LED_I2_C = 0;
+    } else {
+      PIN_LED_I2_C = 1;
+    }
+
+
+
     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
-        //Set Fault if there is not sufficient coolant flow
+    //Set fault if SF6 Pressure too low
         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+    }
+
+    //Set Fault if there is not sufficient coolant flow
+     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_0)) {
+            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_MAGNETRON_COOLANT_FLOW);
+    }
+
+     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_1)) {
+            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_LINAC_COOLANT_FLOW);
+    }
+
+     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_2)) {
+            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CIRCULATOR_COOLANT_FLOW);
     }
 
     if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_cabinet_temp)) {
@@ -133,13 +135,31 @@ void DoA36224_000(){
     //Set fault bit if the switch has opened
     if (PIN_D_IN_1_CABINET_TEMP_SWITCH == CABINET_TEMP_SWITCH_FAULT) {
       ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
-    } else {
-      ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
     }
-    //Update Solenoid valve status?
 
-    //Tell solenoid valve to open or close?
 
+    //Tell solenoid valve to open or close
+    if( ETMCanCheckBit(etm_can_status_register.status_word_0,STATUS_BIT_SF6_SOLENOID_RELAY_STATE))
+    {
+        //If the bit is set, the relay should be closed
+        //1 indicates relay is closed.
+        PIN_D_OUT_0_SOLENOID_RELAY=OLL_CLOSE_RELAY;
+    }
+    else{
+        PIN_D_OUT_0_SOLENOID_RELAY=!OLL_CLOSE_RELAY;
+    }
+
+
+
+
+    etm_can_system_debug_data.debug_8 = global_data_A36224_000.analog_input_flow_0.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_9 = global_data_A36224_000.analog_input_flow_1.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_A = global_data_A36224_000.analog_input_flow_2.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_D = global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_E = PIN_D_OUT_0_SOLENOID_RELAY;
+    etm_can_system_debug_data.debug_F = ADCBUFF;
 }
 
 void InitializeA36224(){
@@ -177,14 +197,14 @@ void InitializeA36224(){
   global_data_A36224_000.analog_input_flow_3.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_flow_3.calibration_external_offset     = 0;
 
-  global_data_A36224_000.analog_input_coolant_temp.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(COOLANT_TEMP_SCALE_FACTOR);
+  global_data_A36224_000.analog_input_coolant_temp.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(1);
   global_data_A36224_000.analog_input_coolant_temp.fixed_offset                    = 0;
   global_data_A36224_000.analog_input_coolant_temp.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_coolant_temp.calibration_internal_offset     = 0;
   global_data_A36224_000.analog_input_coolant_temp.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_coolant_temp.calibration_external_offset     = 0;
 
-  global_data_A36224_000.analog_input_cabinet_temp.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(CABINET_TEMP_SCALE_FACTOR);
+  global_data_A36224_000.analog_input_cabinet_temp.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(1);
   global_data_A36224_000.analog_input_cabinet_temp.fixed_offset                    = 0;
   global_data_A36224_000.analog_input_cabinet_temp.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_cabinet_temp.calibration_internal_offset     = 0;
@@ -234,6 +254,14 @@ void InitializeA36224(){
   etm_can_status_register.status_word_0_inhbit_mask = 0b0000000100000100;  // DPARKER move this to #define somewhere
   etm_can_status_register.status_word_1_fault_mask  = 0b0001111111111111;  // DParker move this to #define somewhere
 
+
+  //Initialize fault values
+  global_data_A36224_000.analog_input_cabinet_temp.over_trip_point_absolute=CABINET_TEMPERATURE_OVER_TRIP_POINT;
+  global_data_A36224_000.analog_input_coolant_temp.over_trip_point_absolute=COOLANT_TEMPERATURE_OVER_TRIP_POINT;
+  global_data_A36224_000.analog_input_flow_0.under_trip_point_absolute=MAGNETRON_FLOW_UNDER_TRIP_POINT;
+  global_data_A36224_000.analog_input_flow_1.under_trip_point_absolute=LINAC_FLOW_UNDER_TRIP_POINT;
+  global_data_A36224_000.analog_input_SF6_pressure.under_trip_point_absolute=SF6_PRESSURE_UNDER_TRIP_POINT;
+  
 
   // Initialize Both MCP4822 DACs
   U42_MCP4822.pin_chip_select_not = _PIN_RD14;
@@ -382,14 +410,7 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
     etm_can_system_debug_data.debug_5 = ADCBUF5;
     etm_can_system_debug_data.debug_6 = ADCBUF6;
     etm_can_system_debug_data.debug_7 = ADCBUF7;
-    etm_can_system_debug_data.debug_8 = ADCBUF8;
-    etm_can_system_debug_data.debug_9 = ADCBUF9;
-    etm_can_system_debug_data.debug_A = ADCBUFA;
-    etm_can_system_debug_data.debug_B = ADCBUFB;
-    etm_can_system_debug_data.debug_C = ADCBUFC;
-    etm_can_system_debug_data.debug_D = ADCBUFD;
-    etm_can_system_debug_data.debug_E = ADCBUFE;
-    etm_can_system_debug_data.debug_F = ADCBUFF;
+
 
 
     global_data_A36224_000.accumulator_counter += 1;

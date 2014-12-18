@@ -130,7 +130,7 @@
   RA15 - Digital IN 5
 
   RB12 - Digital IN 0
-  RB13 - Digital IN 1
+  RB13 - Digital IN 1-Cabinet Temperature Switch
   RB14 - Digital IN 2
   RB15 - DIgital IN 3
 
@@ -208,7 +208,7 @@
 //#define ILL_POWER_SUPPLY_DISABLED                  1
 //#define ILL_RELAY_OPEN                             1
 //#define ILL_HEATER_OV                              0
-#define CABINET_TEMP_SWITCH_FAULT                      0
+#define CABINET_TEMP_SWITCH_FAULT                   1
 
 
 // ------- Digital Output Pins ---------//
@@ -216,7 +216,7 @@
 #define PIN_D_OUT_0_SOLENOID_RELAY                 _LATD0
 #define PIN_D_OUT_1_OUTPUT_RELAY_1                 _LATD1
 #define PIN_D_OUT_REFRESH                        _LATD4
-//#define OLL_CLOSE_RELAY                            1
+#define OLL_CLOSE_RELAY                            1
 
 
 #define PIN_D_OUT_2_UNUSED                         _LATD2
@@ -264,10 +264,17 @@ extern CoolingControlData global_data_A36224_000;
 
 #endif
 
-#define FLOWMETER_SCALE_FACTOR              .1431 //Converts to milliGPM
-#define COOLANT_TEMP_SCALE_FACTOR           5.55 //Unused
-#define CABINET_TEMP_SCALE_FACTOR           5.55 //Unused
-#define SF6_PRESSURE_SCALE_FACTOR           .23842 //Untested, but should be good. Converts to centiPSI
-#define SF6_PRESSURE_OFFSET                 -10486
-#define ANALOG_OUT_SCALE_FACTOR             .5 //This works. Converts mV to Volts for Analog outputs
-#define ANALOG_OUT_INTERNAL_SCALE           1  
+//Scale factors
+#define FLOWMETER_SCALE_FACTOR              .1431*3.78541 //Converts to milliliters/minute
+#define SF6_PRESSURE_SCALE_FACTOR           .23842 //Tested and working. Converts to centiPSI
+#define SF6_PRESSURE_OFFSET                 -10486 //Tested and working
+#define ANALOG_OUT_SCALE_FACTOR             .5 //Tested and working. Converts mV to Volts for Analog outputs
+#define ANALOG_OUT_INTERNAL_SCALE           1
+//Fault Levels
+#define CABINET_TEMPERATURE_OVER_TRIP_POINT         (45+273)*100    //Fault at 45 degrees C-> 1/100ths Kelvin
+#define COOLANT_TEMPERATURE_OVER_TRIP_POINT         (35+273)*100
+#define COOLANT_TEMPERATURE_UNDER_TRIP_POINT        (20+273)*100
+#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (.85*5.7*1000) //4.8 liters/minute
+#define LINAC_FLOW_UNDER_TRIP_POINT                 (.85*11.3*1000)
+#define CIRCULATOR_FLOW_UNDER_TRIP_POINT            (.85*11.3*1000)
+#define SF6_PRESSURE_UNDER_TRIP_POINT               38*100          //38 psi
