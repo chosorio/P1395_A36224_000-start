@@ -217,6 +217,7 @@
 #define PIN_D_OUT_1_OUTPUT_RELAY_1                 _LATD1
 #define PIN_D_OUT_REFRESH                        _LATD4
 #define OLL_CLOSE_RELAY                            1
+#define OLL_OPEN_RELAY                             0
 
 
 #define PIN_D_OUT_2_UNUSED                         _LATD2
@@ -253,6 +254,7 @@ typedef struct {
   AnalogOutput analog_output_cabinet_thermistor;
 
   unsigned int  accumulator_counter;
+  unsigned int SF6_pulse_counter;
 
  // unsigned int  adc_ignore_current_sample;
 

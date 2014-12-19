@@ -17,6 +17,7 @@
       <itemPath>../../P1395_Modules/ETM_SPI.h</itemPath>
       <itemPath>../../P1395_Modules/MCP4822.h</itemPath>
       <itemPath>ETM_CAN_BOARD_SELECT.h</itemPath>
+      <itemPath>SF6_CONTROL.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -37,6 +38,7 @@
       <itemPath>../../P1395_Modules/ETM_SCALE.s</itemPath>
       <itemPath>../../P1395_Modules/ETM_SPI.c</itemPath>
       <itemPath>../../P1395_Modules/MCP4822.c</itemPath>
+      <itemPath>SF6_CONTROL.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -234,6 +236,7 @@
         <property key="UART 1" value="true"/>
         <property key="UART 2" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>

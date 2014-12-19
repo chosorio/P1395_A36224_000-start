@@ -1,6 +1,7 @@
 #include "A36224_000.h"
 #include "MCP4822.h"
 #include "THERMISTOR_LOOKUP.h"
+#include "SF6_CONTROL.h"
 _FOSC(ECIO & CSW_FSCM_OFF); 
 _FWDT(WDT_ON & WDTPSA_64 & WDTPSB_8);  // 1 Second watchdog timer 
 _FBORPOR(PWRT_OFF & BORV_45 & PBOR_OFF & MCLR_EN);
@@ -55,6 +56,9 @@ void DoStateMachine(void){
 
 void DoA36224_000(){
 
+    if(_T5IF){
+
+   _T5IF=0;
 
     //Convert Flow Meter readings to flow data
     ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_0);
@@ -65,8 +69,7 @@ void DoA36224_000(){
 
 
     //Convert temperature sensors to digital
-    //This will require some work. The sensors are non linear
-    //Going with an 8 bit lookup table, then using linear interpolation to fill in the gaps.
+    //Uses an 8 bit lookup table, then linear interpolation to fill in the gaps.
 
     //Convert Temperature readings
     //Cabinet
@@ -109,6 +112,17 @@ void DoA36224_000(){
         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
     }
 
+    if (ETMCanCheckBit(etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG))
+    {
+        //We can clear the fault if the SF6 pressure rises above 40psi
+        if (global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated>SF6_PRESSURE_CLEAR_LEVEL){
+            ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+
+        }
+    }
+  
+
+
     //Set Fault if there is not sufficient coolant flow
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_0)) {
             ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_MAGNETRON_COOLANT_FLOW);
@@ -138,16 +152,20 @@ void DoA36224_000(){
     }
 
 
-    //Tell solenoid valve to open or close
-    if( ETMCanCheckBit(etm_can_status_register.status_word_0,STATUS_BIT_SF6_SOLENOID_RELAY_STATE))
-    {
-        //If the bit is set, the relay should be closed
-        //1 indicates relay is closed.
-        PIN_D_OUT_0_SOLENOID_RELAY=OLL_CLOSE_RELAY;
-    }
-    else{
-        PIN_D_OUT_0_SOLENOID_RELAY=!OLL_CLOSE_RELAY;
-    }
+   //SF6 Pressure Control
+
+   //If the SF6 pressure is way too low, we can't do anything.
+   //unless there is an override bit?
+
+
+   DoSF6Control();
+   //Check pulse counter
+   //Maybe we should make a pulse counter fault and check that?
+
+   //Check temperature
+
+   //Check pressure
+
 
 
 
@@ -160,6 +178,10 @@ void DoA36224_000(){
     etm_can_system_debug_data.debug_D = global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated;
     etm_can_system_debug_data.debug_E = PIN_D_OUT_0_SOLENOID_RELAY;
     etm_can_system_debug_data.debug_F = ADCBUFF;
+
+ 
+}
+
 }
 
 void InitializeA36224(){
@@ -246,6 +268,10 @@ void InitializeA36224(){
   global_data_A36224_000.analog_output_cabinet_thermistor.calibration_external_offset     = 0;
   global_data_A36224_000.analog_output_cabinet_thermistor.set_point                       = 4096;
   global_data_A36224_000.analog_output_cabinet_thermistor.enabled                         = 1;
+
+  //Initialize SF6_pulse counter.Maybe this should actually be saved on ECB and sent down during startup.
+  //This is probably fine for now.
+  global_data_A36224_000.SF6_pulse_counter=0;
 
   etm_can_status_register.status_word_0 = 0x0000;
   etm_can_status_register.status_word_1 = 0x0000;
@@ -382,8 +408,9 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_flow_0.adc_accumulator        += ADCBUF0;
       global_data_A36224_000.analog_input_flow_1.adc_accumulator        += ADCBUF1;
       global_data_A36224_000.analog_input_flow_2.adc_accumulator        += ADCBUF2;
-      global_data_A36224_000.analog_input_flow_3.adc_accumulator        += ADCBUF3;
-      global_data_A36224_000.analog_input_flow_4.adc_accumulator        += ADCBUF4;
+      //flow 3,4,and 5 are unused.
+      //global_data_A36224_000.analog_input_flow_3.adc_accumulator        += ADCBUF3;
+      //global_data_A36224_000.analog_input_flow_4.adc_accumulator        += ADCBUF4;
       //global_data_A36224_000.analog_input_flow_5.adc_accumulator      += ADCBUF5;
       global_data_A36224_000.analog_input_coolant_temp.adc_accumulator  += ADCBUF5;
       global_data_A36224_000.analog_input_cabinet_temp.adc_accumulator  += ADCBUF6;
@@ -393,8 +420,8 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_flow_0.adc_accumulator        += ADCBUF8;
       global_data_A36224_000.analog_input_flow_1.adc_accumulator        += ADCBUF9;
       global_data_A36224_000.analog_input_flow_2.adc_accumulator        += ADCBUFA;
-      global_data_A36224_000.analog_input_flow_3.adc_accumulator        += ADCBUFB;
-      global_data_A36224_000.analog_input_flow_4.adc_accumulator        += ADCBUFC;
+      //global_data_A36224_000.analog_input_flow_3.adc_accumulator        += ADCBUFB;
+      //global_data_A36224_000.analog_input_flow_4.adc_accumulator        += ADCBUFC;
       //global_data_A36224_000.analog_input_flow_5.adc_accumulator      += ADCBUFD;
       global_data_A36224_000.analog_input_coolant_temp.adc_accumulator  += ADCBUFD;
       global_data_A36224_000.analog_input_cabinet_temp.adc_accumulator  += ADCBUFE;
