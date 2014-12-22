@@ -2,6 +2,7 @@
 #include "MCP4822.h"
 #include "THERMISTOR_LOOKUP.h"
 #include "SF6_CONTROL.h"
+
 _FOSC(ECIO & CSW_FSCM_OFF); 
 _FWDT(WDT_ON & WDTPSA_64 & WDTPSB_8);  // 1 Second watchdog timer 
 _FBORPOR(PWRT_OFF & BORV_45 & PBOR_OFF & MCLR_EN);
@@ -19,6 +20,8 @@ MCP4822 U42_MCP4822;
 MCP4822 U44_MCP4822;
 
 CoolingControlData global_data_A36224_000;
+
+//const unsigned int SF6_bottle_counter;
 
 unsigned int control_state;
 //Any reason for the numbering?
@@ -145,6 +148,7 @@ void DoA36224_000(){
         //Set Fault if cabinet temperature too high
         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_ANALOG);
     }
+
     //Check temperature switch
     //Set fault bit if the switch has opened
     if (PIN_D_IN_1_CABINET_TEMP_SWITCH == CABINET_TEMP_SWITCH_FAULT) {
@@ -153,7 +157,12 @@ void DoA36224_000(){
 
 
    //SF6 Pressure Control
-
+     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
+         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CIRCULATOR_COOLANT_FLOW);
+    }
+     else{
+         ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_CIRCULATOR_COOLANT_FLOW);
+     }
    //If the SF6 pressure is way too low, we can't do anything.
    //unless there is an override bit?
 
@@ -175,9 +184,9 @@ void DoA36224_000(){
     etm_can_system_debug_data.debug_A = global_data_A36224_000.analog_input_flow_2.reading_scaled_and_calibrated;
     etm_can_system_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
     etm_can_system_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
-    etm_can_system_debug_data.debug_D = global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated;
+    etm_can_system_debug_data.debug_D = global_data_A36224_000.SF6_pulse_counter;
     etm_can_system_debug_data.debug_E = PIN_D_OUT_0_SOLENOID_RELAY;
-    etm_can_system_debug_data.debug_F = ADCBUFF;
+    etm_can_system_debug_data.debug_F = global_data_A36224_000.SF6_bottle_counter;
 
  
 }
@@ -272,6 +281,14 @@ void InitializeA36224(){
   //Initialize SF6_pulse counter.Maybe this should actually be saved on ECB and sent down during startup.
   //This is probably fine for now.
   global_data_A36224_000.SF6_pulse_counter=0;
+  
+
+  
+
+  //Read bottle counter from memory.
+
+  //for now, I'm gonna have to set it, but I'll remove it and see if it still works
+
 
   etm_can_status_register.status_word_0 = 0x0000;
   etm_can_status_register.status_word_1 = 0x0000;
@@ -287,7 +304,9 @@ void InitializeA36224(){
   global_data_A36224_000.analog_input_flow_0.under_trip_point_absolute=MAGNETRON_FLOW_UNDER_TRIP_POINT;
   global_data_A36224_000.analog_input_flow_1.under_trip_point_absolute=LINAC_FLOW_UNDER_TRIP_POINT;
   global_data_A36224_000.analog_input_SF6_pressure.under_trip_point_absolute=SF6_PRESSURE_UNDER_TRIP_POINT;
-  
+
+
+  global_data_A36224_000.SF6_bottle_counter=700; //This should be read from memory
 
   // Initialize Both MCP4822 DACs
   U42_MCP4822.pin_chip_select_not = _PIN_RD14;
