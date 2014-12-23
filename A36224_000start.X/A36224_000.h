@@ -8,8 +8,7 @@
 
 #include "ETM_CAN_PUBLIC.h"
 #include "ETM_ANALOG.h"
-
-
+#include "SF6_CONTROL.h"
 
 
 /*
@@ -256,7 +255,6 @@ typedef struct {
   unsigned int  accumulator_counter;
   unsigned int SF6_pulse_counter;
   unsigned int SF6_bottle_counter;
- // unsigned int  adc_ignore_current_sample;
 
 } CoolingControlData;
 

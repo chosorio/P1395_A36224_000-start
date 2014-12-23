@@ -12,6 +12,7 @@ _FGS(CODE_PROT_OFF);
 _FICD(PGD);
 
 
+
 void DoStateMachine(void);
 void InitializeA36224(void);
 void DoA36224_000(void);
@@ -21,15 +22,22 @@ MCP4822 U44_MCP4822;
 
 CoolingControlData global_data_A36224_000;
 
-//const unsigned int SF6_bottle_counter;
 
 unsigned int control_state;
-//Any reason for the numbering?
+
 #define STATE_STARTUP                0x10
 //#define STATE_WAITING_FOR_CONFIG     0x20
 #define STATE_OPERATE                0x30
 
+unsigned int _EEDATA(2) SF6_bottle_counter_in_EE[1];
+_prog_addressT EE_addr;
+//unsigned int SF6_bottle_counter_in_RAM [1];
+
 int main(void) {
+
+_init_prog_address(EE_addr, SF6_bottle_counter_in_EE);
+//_memcpy_p2d16(SF6_bottle_counter_in_RAM, EE_addr, _EE_WORD);
+//SF6_bottle_counter_in_RAM[0]=SF6_bottle_counter_in_EE[0];
  control_state = STATE_STARTUP;
   while (1) {
     DoStateMachine();
@@ -167,15 +175,13 @@ void DoA36224_000(){
    //unless there is an override bit?
 
 
-   DoSF6Control();
+   DoSF6Control( );
    //Check pulse counter
    //Maybe we should make a pulse counter fault and check that?
-
-   //Check temperature
-
-   //Check pressure
-
-
+    _erase_eedata(EE_addr,_EE_WORD);
+    _wait_eedata();
+    _write_eedata_word(EE_addr, global_data_A36224_000.SF6_bottle_counter);
+    _wait_eedata();
 
 
 
@@ -286,7 +292,15 @@ void InitializeA36224(){
   
 
   //Read bottle counter from memory.
-
+  unsigned int temp_SF6_bottle_counter;
+  _memcpy_p2d16(&temp_SF6_bottle_counter, EE_addr, 2);
+//  if(temp_SF6_bottle_counter>700||temp_SF6_bottle_counter==0)
+//  {
+//      global_data_A36224_000.SF6_bottle_counter=700;
+//  }
+//  else{
+      global_data_A36224_000.SF6_bottle_counter=temp_SF6_bottle_counter;
+// }
   //for now, I'm gonna have to set it, but I'll remove it and see if it still works
 
 
@@ -305,8 +319,6 @@ void InitializeA36224(){
   global_data_A36224_000.analog_input_flow_1.under_trip_point_absolute=LINAC_FLOW_UNDER_TRIP_POINT;
   global_data_A36224_000.analog_input_SF6_pressure.under_trip_point_absolute=SF6_PRESSURE_UNDER_TRIP_POINT;
 
-
-  global_data_A36224_000.SF6_bottle_counter=700; //This should be read from memory
 
   // Initialize Both MCP4822 DACs
   U42_MCP4822.pin_chip_select_not = _PIN_RD14;
@@ -332,6 +344,7 @@ void InitializeA36224(){
 
   //Set up outputs as supplies for switches and thermistors
         // Set DAC outputs
+
        //Analog Out 0
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_temp_switch);
       WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_temp_switch.dac_setting_scaled_and_calibrated);

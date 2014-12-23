@@ -65,6 +65,7 @@ void DoSF6Control(void){
             //check to see if fault bit has been cleared.
             if (SF6_pulse_limit_override){
                 SF6_control_state=SF6_CONTROL_STATE_IDLE;
+                global_data_A36224_000.SF6_pulse_counter=0;
                 SF6_pulse_limit_override=0;
             }
             break;
@@ -78,6 +79,7 @@ void DoSF6Control(void){
 void OverrideSF6LowPressure(void){
     //I'm not sure when to reset this.
     SF6_pressure_low_override=5;
+    global_data_A36224_000.SF6_pulse_counter=0;
 }
 
 void OverrideSF6PulseLimit(void){

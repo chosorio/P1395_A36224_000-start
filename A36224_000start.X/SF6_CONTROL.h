@@ -27,7 +27,7 @@
 #define SF6_PUMP_COUNT_MAX                          25
 void DoSF6Control(void);
 void OverrideSF6LowPressure(void);
-
+void OverrideSF6PulseLimit(void);
 
 #endif	/* SF6_CONTROL_H */
 
