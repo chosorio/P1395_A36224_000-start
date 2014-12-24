@@ -115,14 +115,18 @@ void DoA36224_000(){
     } else {
       PIN_LED_I2_C = 1;
     }
-
-
-
-    if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
-    //Set fault if SF6 Pressure too low
-        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+    unsigned int cabinet_temp_switch=PIN_D_IN_1_CABINET_TEMP_SWITCH;
+    if(cabinet_temp_switch==CABINET_TEMP_SWITCH_FAULT){
+        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
     }
 
+    if(global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated>=COOLANT_TEMPERATURE_MINIMUM){
+        if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
+        //Set fault if SF6 Pressure too low
+            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+        }
+    }
+    
     if (ETMCanCheckBit(etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG))
     {
         //We can clear the fault if the SF6 pressure rises above 40psi
@@ -154,9 +158,13 @@ void DoA36224_000(){
 
     if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
         //Set Fault if cabinet temperature too high
-        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_ANALOG);
+        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_OVER);
     }
 
+    if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
+        //Set Fault if cabinet temperature too high
+        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_UNDER);
+    }
     //Check temperature switch
     //Set fault bit if the switch has opened
     if (PIN_D_IN_1_CABINET_TEMP_SWITCH == CABINET_TEMP_SWITCH_FAULT) {
@@ -165,12 +173,12 @@ void DoA36224_000(){
 
 
    //SF6 Pressure Control
-     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
-         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CIRCULATOR_COOLANT_FLOW);
-    }
-     else{
-         ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_CIRCULATOR_COOLANT_FLOW);
-     }
+//     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
+//         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+//    }
+//     else{
+//         ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+//     }
    //If the SF6 pressure is way too low, we can't do anything.
    //unless there is an override bit?
 
@@ -191,7 +199,7 @@ void DoA36224_000(){
     etm_can_system_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
     etm_can_system_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
     etm_can_system_debug_data.debug_D = global_data_A36224_000.SF6_pulse_counter;
-    etm_can_system_debug_data.debug_E = PIN_D_OUT_0_SOLENOID_RELAY;
+
     etm_can_system_debug_data.debug_F = global_data_A36224_000.SF6_bottle_counter;
 
  
@@ -271,7 +279,7 @@ void InitializeA36224(){
   global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_internal_offset     = 0;
   global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_output_cabinet_temp_switch.calibration_external_offset     = 0;
-  global_data_A36224_000.analog_output_cabinet_temp_switch.set_point                       = 4096;
+  global_data_A36224_000.analog_output_cabinet_temp_switch.set_point                       = 8000;
   global_data_A36224_000.analog_output_cabinet_temp_switch.enabled                         = 1;
 
 
@@ -286,7 +294,7 @@ void InitializeA36224(){
 
   //Initialize SF6_pulse counter.Maybe this should actually be saved on ECB and sent down during startup.
   //This is probably fine for now.
-  global_data_A36224_000.SF6_pulse_counter=0;
+  //global_data_A36224_000.SF6_pulse_counter=0;
   
 
   
@@ -493,7 +501,7 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_flow_3.filtered_adc_reading = global_data_A36224_000.analog_input_flow_3.adc_accumulator;
       global_data_A36224_000.analog_input_flow_3.adc_accumulator = 0;
 
-       global_data_A36224_000.analog_input_flow_4.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
+      global_data_A36224_000.analog_input_flow_4.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
       global_data_A36224_000.analog_input_flow_4.filtered_adc_reading = global_data_A36224_000.analog_input_flow_4.adc_accumulator;
       global_data_A36224_000.analog_input_flow_4.adc_accumulator = 0;
 

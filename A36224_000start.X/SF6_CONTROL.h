@@ -19,6 +19,7 @@
 #define SF6_PRESSURE                global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated
 
 #define SF6_PRESSURE_TARGET                         42*100          //42 psi
+#define SF6_PRESSURE_LOW_LEVEL                      37*100          //Throw sf6 fault if below this level
 #define SF6_PRESSURE_CLEAR_LEVEL                    40*100          //Can clear an SF6 fault if above this level.
 #define SF6_PRESSURE_LEAK_LEVEL                     30*100          //if less than 30 psi, there is likely a leak, and we don't pump SF6
 #define COOLANT_TEMPERATURE_MINIMUM                 (20+273)*100 //Can't pulse SF6 under 20 degrees C
