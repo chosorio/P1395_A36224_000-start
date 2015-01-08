@@ -60,8 +60,6 @@ void DoStateMachine(void){
         default:
             control_state = STATE_STARTUP;
             break;
-
-
     }
 }
 
@@ -96,91 +94,76 @@ void DoA36224_000(){
     }
 
     //Convert SF6 pressure sensor to digital
-    //need to find correct scaling factors
+
     ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_SF6_pressure);
 
     // -------------------- CHECK FOR FAULTS ------------------- //
 
- 
     if (global_reset_faults) {
-      etm_can_system_debug_data.debug_0++;
-      etm_can_status_register.status_word_1 = 0x0000;
+      local_debug_data.debug_0++;
+     _FAULT_REGISTER = 0x0000;
       global_reset_faults = 0;
     }
     
     // Set the fault LED
-    if (etm_can_status_register.status_word_0 & 0x0001) {
+    if (_CONTROL_NOT_READY) {
       // The board is faulted
       PIN_LED_I2_C = 0;
     } else {
       PIN_LED_I2_C = 1;
     }
+
     unsigned int cabinet_temp_switch=PIN_D_IN_1_CABINET_TEMP_SWITCH;
+
     if(cabinet_temp_switch==CABINET_TEMP_SWITCH_FAULT){
-        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
+        _FAULT_CABINET_TEMPERATURE_SWITCH=1;
     }
 
     if(global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated>=COOLANT_TEMPERATURE_MINIMUM){
         if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
         //Set fault if SF6 Pressure too low
-            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+            _FAULT_SF6_PRESSURE_ANALOG=1;
         }
     }
     
-    if (ETMCanCheckBit(etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG))
+    if (_FAULT_SF6_PRESSURE_ANALOG==1)
     {
         //We can clear the fault if the SF6 pressure rises above 40psi
         if (global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated>SF6_PRESSURE_CLEAR_LEVEL){
-            ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
-
+            _FAULT_SF6_PRESSURE_ANALOG=0;
         }
     }
   
-
-
     //Set Fault if there is not sufficient coolant flow
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_0)) {
-            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_MAGNETRON_COOLANT_FLOW);
+         _FAULT_MAGNETRON_COOLANT_FLOW=1;
     }
 
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_1)) {
-            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_LINAC_COOLANT_FLOW);
-    }
+         _FAULT_LINAC_COOLANT_FLOW=1;
+     }
 
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_2)) {
-            ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CIRCULATOR_COOLANT_FLOW);
-    }
+        _FAULT_CIRCULATOR_COOLANT_FLOW=1;
+     }
 
     if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_cabinet_temp)) {
-        //Set Fault if cabinet temperature too high
-        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMP_ANALOG);
+        _FAULT_CABINET_TEMP_ANALOG=1;
     }
 
     if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
-        //Set Fault if cabinet temperature too high
-        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_OVER);
+        _FAULT_COOLANT_TEMP_OVER=1;
     }
 
     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
-        //Set Fault if cabinet temperature too high
-        ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_UNDER);
+        _FAULT_COOLANT_TEMP_UNDER=1;
     }
+
     //Check temperature switch
     //Set fault bit if the switch has opened
     if (PIN_D_IN_1_CABINET_TEMP_SWITCH == CABINET_TEMP_SWITCH_FAULT) {
-      ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_CABINET_TEMPERATURE_SWITCH);
+        _FAULT_CABINET_TEMPERATURE_SWITCH=1;
     }
-
-
-   //SF6 Pressure Control
-//     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
-//         ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
-//    }
-//     else{
-//         ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
-//     }
-   //If the SF6 pressure is way too low, we can't do anything.
-   //unless there is an override bit?
 
 
    DoSF6Control( );
@@ -193,14 +176,14 @@ void DoA36224_000(){
 
 
 
-    etm_can_system_debug_data.debug_8 = global_data_A36224_000.analog_input_flow_0.reading_scaled_and_calibrated;
-    etm_can_system_debug_data.debug_9 = global_data_A36224_000.analog_input_flow_1.reading_scaled_and_calibrated;
-    etm_can_system_debug_data.debug_A = global_data_A36224_000.analog_input_flow_2.reading_scaled_and_calibrated;
-    etm_can_system_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
-    etm_can_system_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
-    etm_can_system_debug_data.debug_D = global_data_A36224_000.SF6_pulse_counter;
+    local_debug_data.debug_8 = global_data_A36224_000.analog_input_flow_0.reading_scaled_and_calibrated;
+    local_debug_data.debug_9 = global_data_A36224_000.analog_input_flow_1.reading_scaled_and_calibrated;
+    local_debug_data.debug_A = global_data_A36224_000.analog_input_flow_2.reading_scaled_and_calibrated;
+    local_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
+    local_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
+    local_debug_data.debug_D = global_data_A36224_000.SF6_pulse_counter;
 
-    etm_can_system_debug_data.debug_F = global_data_A36224_000.SF6_bottle_counter;
+    local_debug_data.debug_F = global_data_A36224_000.SF6_bottle_counter;
 
  
 }
@@ -211,7 +194,7 @@ void InitializeA36224(){
 
 
   // Initialize the Analog Input * Output Scaling
-  // Dparker need to read from EEPROM ????
+
 
 
   global_data_A36224_000.analog_input_flow_0.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(FLOWMETER_SCALE_FACTOR);
@@ -312,12 +295,10 @@ void InitializeA36224(){
   //for now, I'm gonna have to set it, but I'll remove it and see if it still works
 
 
-  etm_can_status_register.status_word_0 = 0x0000;
-  etm_can_status_register.status_word_1 = 0x0000;
+  _FAULT_REGISTER=0;
+  _CONTROL_REGISTER=0;
   etm_can_status_register.data_word_A = 0x0000;
   etm_can_status_register.data_word_B = 0x0000;
-  etm_can_status_register.status_word_0_inhbit_mask = 0b0000000100000100;  // DPARKER move this to #define somewhere
-  etm_can_status_register.status_word_1_fault_mask  = 0b0001111111111111;  // DParker move this to #define somewhere
 
 
   //Initialize fault values
@@ -356,9 +337,11 @@ void InitializeA36224(){
        //Analog Out 0
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_temp_switch);
       WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_cabinet_temp_switch.dac_setting_scaled_and_calibrated);
+
       //Analog Out 1
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_cabinet_thermistor);
       WriteMCP4822(&U42_MCP4822, MCP4822_OUTPUT_B_4096, global_data_A36224_000.analog_output_cabinet_thermistor.dac_setting_scaled_and_calibrated);
+
       //Analog Out 2
       ETMAnalogScaleCalibrateDACSetting(&global_data_A36224_000.analog_output_coolant_thermistor);
       WriteMCP4822(&U44_MCP4822, MCP4822_OUTPUT_A_4096, global_data_A36224_000.analog_output_coolant_thermistor.dac_setting_scaled_and_calibrated);
@@ -468,15 +451,13 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_SF6_pressure.adc_accumulator  += ADCBUFF;
     }
 
-
-    //etm_can_system_debug_data.debug_0 = ADCBUF0; //Why was this commented out? Ask Dan?
-    etm_can_system_debug_data.debug_1 = ADCBUF1;
-    etm_can_system_debug_data.debug_2 = ADCBUF2;
-    etm_can_system_debug_data.debug_3 = ADCBUF3;
-    etm_can_system_debug_data.debug_4 = ADCBUF4;
-    etm_can_system_debug_data.debug_5 = ADCBUF5;
-    etm_can_system_debug_data.debug_6 = ADCBUF6;
-    etm_can_system_debug_data.debug_7 = ADCBUF7;
+    local_debug_data.debug_1 = ADCBUF1;
+    local_debug_data.debug_2 = ADCBUF2;
+    local_debug_data.debug_3 = ADCBUF3;
+    local_debug_data.debug_4 = ADCBUF4;
+    local_debug_data.debug_5 = ADCBUF5;
+    local_debug_data.debug_6 = ADCBUF6;
+    local_debug_data.debug_7 = ADCBUF7;
 
 
 

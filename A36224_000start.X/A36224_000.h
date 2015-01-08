@@ -94,24 +94,24 @@
 
 
 // -------------------- A36224_000 STATUS BIT CONFIGURATION ------------------------ //
-#define STATUS_BIT_SF6_SOLENOID_RELAY_STATE                STATUS_BIT_USER_DEFINED_8
+#define _STATUS_BIT_SF6_SOLENOID_RELAY_STATE                _STATUS_0
 
 
 
 // -------------------- A36224_000 FAULTS/WARNINGS CONFIGURATION-------------------- //
-#define FAULT_BIT_MAGNETRON_COOLANT_FLOW         FAULT_BIT_USER_DEFINED_1
-#define FAULT_BIT_HVPS_COOLANT_FLOW              FAULT_BIT_USER_DEFINED_2
-#define FAULT_BIT_CIRCULATOR_COOLANT_FLOW        FAULT_BIT_USER_DEFINED_3
-#define FAULT_BIT_LINAC_COOLANT_FLOW             FAULT_BIT_USER_DEFINED_4
-#define FAULT_BIT_HX_COOLANT_FLOW                FAULT_BIT_USER_DEFINED_5
-#define FAULT_BIT_CABINET_TEMPERATURE_SWITCH     FAULT_BIT_USER_DEFINED_6
+#define _FAULT_MAGNETRON_COOLANT_FLOW         _FAULT_1
+#define _FAULT_HVPS_COOLANT_FLOW              _FAULT_2
+#define _FAULT_CIRCULATOR_COOLANT_FLOW        _FAULT_3
+#define _FAULT_LINAC_COOLANT_FLOW             _FAULT_4
+#define _FAULT_HX_COOLANT_FLOW                _FAULT_5
+#define _FAULT_CABINET_TEMPERATURE_SWITCH     _FAULT_6
 
-#define FAULT_BIT_CABINET_TEMP_ANALOG            FAULT_BIT_USER_DEFINED_7
-#define FAULT_BIT_COOLANT_TEMP_OVER              FAULT_BIT_USER_DEFINED_8
-#define FAULT_BIT_COOLANT_TEMP_UNDER             FAULT_BIT_USER_DEFINED_9
-#define FAULT_BIT_LINAC_TEMP_ANALOG              FAULT_BIT_USER_DEFINED_10
-#define FAULT_BIT_SF6_PRESSURE_SWITCH            FAULT_BIT_USER_DEFINED_11
-#define FAULT_BIT_SF6_PRESSURE_ANALOG            FAULT_BIT_USER_DEFINED_12
+#define _FAULT_CABINET_TEMP_ANALOG            _FAULT_7
+#define _FAULT_COOLANT_TEMP_OVER              _FAULT_8
+#define _FAULT_COOLANT_TEMP_UNDER             _FAULT_9
+#define _FAULT_LINAC_TEMP_ANALOG              _FAULT_A
+#define _FAULT_SF6_PRESSURE_SWITCH            _FAULT_B
+#define _FAULT_SF6_PRESSURE_ANALOG            _FAULT_C
 
 
 
@@ -214,25 +214,25 @@
 
 // ------- Digital Output Pins ---------//
 
-#define PIN_D_OUT_0_SOLENOID_RELAY                 _LATD0
-#define PIN_D_OUT_1_OUTPUT_RELAY_1                 _LATD1
-#define PIN_D_OUT_REFRESH                        _LATD4
-#define OLL_CLOSE_RELAY                            1
-#define OLL_OPEN_RELAY                             0
+#define PIN_D_OUT_0_SOLENOID_RELAY                  _LATD0
+#define PIN_D_OUT_1_OUTPUT_RELAY_1                  _LATD1
+#define PIN_D_OUT_REFRESH                           _LATD4
+#define OLL_CLOSE_RELAY                             1
+#define OLL_OPEN_RELAY                              0
 
 
-#define PIN_D_OUT_2_UNUSED                         _LATD2
-#define PIN_D_OUT_3_UNUSED                         _LATD3
-//#define OLL_ENABLE_SUPPLY                          1
+#define PIN_D_OUT_2_UNUSED                          _LATD2
+#define PIN_D_OUT_3_UNUSED                          _LATD3
+//#define OLL_ENABLE_SUPPLY                         1
 
-#define PIN_LED_WATCHDOG                           _LATG12
-#define PIN_LED_COM                                _LATG13
-#define PIN_LED_POWER                              _LATG14
-#define PIN_LED_FLOW                               _LATG15
-#define PIN_LED_I2_A                               _LATC1
-#define PIN_LED_I2_B                               _LATC2
-#define PIN_LED_I2_C                               _LATC3
-#define PIN_LED_I2_D                               _LATC4
+#define PIN_LED_WATCHDOG                            _LATG12
+#define PIN_LED_COM                                 _LATG13
+#define PIN_LED_POWER                               _LATG14
+#define PIN_LED_FLOW                                _LATG15
+#define PIN_LED_I2_A                                _LATC1
+#define PIN_LED_I2_B                                _LATC2
+#define PIN_LED_I2_C                                _LATC3
+#define PIN_LED_I2_D                                _LATC4
 
 
 typedef struct {
@@ -254,7 +254,7 @@ typedef struct {
   AnalogOutput analog_output_coolant_thermistor;
   AnalogOutput analog_output_cabinet_thermistor;
 
-  unsigned int  accumulator_counter;
+  unsigned int accumulator_counter;
   unsigned int SF6_pulse_counter;
   unsigned int SF6_bottle_counter;
 

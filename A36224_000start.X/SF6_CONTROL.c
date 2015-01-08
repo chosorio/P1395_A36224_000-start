@@ -7,18 +7,17 @@ unsigned int SF6_pressure_low_override=0;
 unsigned int SF6_pulse_limit_override=0;
 
 void DoSF6Control(void){
-        etm_can_system_debug_data.debug_E = SF6_pressure_low_override;
+        local_debug_data.debug_E = SF6_pressure_low_override;
         
         //Check for faults
         if(COOLANT_TEMPERATURE>=COOLANT_TEMPERATURE_MINIMUM){
-
-            ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_COOLANT_TEMP_UNDER);
+                _FAULT_COOLANT_TEMP_UNDER=0;
             if(SF6_PRESSURE<SF6_PRESSURE_CLEAR_LEVEL){
-                ETMCanSetBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+                _FAULT_SF6_PRESSURE_ANALOG=1;
             }
             else if(SF6_PRESSURE>=SF6_PRESSURE_CLEAR_LEVEL)
             {
-                ETMCanClearBit(&etm_can_status_register.status_word_1, FAULT_BIT_SF6_PRESSURE_ANALOG);
+                _FAULT_SF6_PRESSURE_ANALOG=0;
             }
         }
 
@@ -99,8 +98,8 @@ void DoSF6Control(void){
             }
             break;
         default:
+
             break;
-            
     }
 
 }
