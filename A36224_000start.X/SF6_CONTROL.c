@@ -12,7 +12,7 @@ void DoSF6Control(void){
         //Check for faults
         if(COOLANT_TEMPERATURE>=COOLANT_TEMPERATURE_MINIMUM){
                 _FAULT_COOLANT_TEMP_UNDER=0;
-            if(SF6_PRESSURE<SF6_PRESSURE_CLEAR_LEVEL){
+            if(SF6_PRESSURE<SF6_PRESSURE_LOW_LEVEL){
                 _FAULT_SF6_PRESSURE_ANALOG=1;
             }
             else if(SF6_PRESSURE>=SF6_PRESSURE_CLEAR_LEVEL)
@@ -55,7 +55,12 @@ void DoSF6Control(void){
                 counter_5s=0;
                 global_data_A36224_000.SF6_pulse_counter++;
                 //need to decrease amount in bottle as well-these are separate variables.
+                if( global_data_A36224_000.SF6_bottle_counter>0 && global_data_A36224_000.SF6_bottle_counter<700){
                 global_data_A36224_000.SF6_bottle_counter--;
+                }
+                else{
+                    global_data_A36224_000.SF6_bottle_counter=0;
+                }
                 if(SF6_pressure_low_override>0){
                     SF6_pressure_low_override--;
                 }

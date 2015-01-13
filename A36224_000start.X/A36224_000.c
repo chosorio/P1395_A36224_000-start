@@ -118,6 +118,9 @@ void DoA36224_000(){
     if(cabinet_temp_switch==CABINET_TEMP_SWITCH_FAULT){
         _FAULT_CABINET_TEMPERATURE_SWITCH=1;
     }
+    else{
+        _FAULT_CABINET_TEMPERATURE_SWITCH=0;
+    }
 
     if(global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated>=COOLANT_TEMPERATURE_MINIMUM){
         if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_SF6_pressure)) {
@@ -138,31 +141,60 @@ void DoA36224_000(){
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_0)) {
          _FAULT_MAGNETRON_COOLANT_FLOW=1;
     }
+     else{
+         _FAULT_MAGNETRON_COOLANT_FLOW=0;
+     }
+
 
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_1)) {
          _FAULT_LINAC_COOLANT_FLOW=1;
      }
+     else{
+         _FAULT_LINAC_COOLANT_FLOW=0;
+     }
 
      if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_flow_2)) {
-        _FAULT_CIRCULATOR_COOLANT_FLOW=1;
+       _FAULT_CIRCULATOR_COOLANT_FLOW=1;
+     }
+     else{
+         _FAULT_CIRCULATOR_COOLANT_FLOW=0;
      }
 
     if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_cabinet_temp)) {
         _FAULT_CABINET_TEMP_ANALOG=1;
     }
+    else{
+        _FAULT_CABINET_TEMP_ANALOG=0;
+    }
 
     if (ETMAnalogCheckOverAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
         _FAULT_COOLANT_TEMP_OVER=1;
     }
+    else{
+        _FAULT_COOLANT_TEMP_OVER=0;
+    }
 
     if (ETMAnalogCheckUnderAbsolute(&global_data_A36224_000.analog_input_coolant_temp)) {
         _FAULT_COOLANT_TEMP_UNDER=1;
+    }
+    else{
+        _FAULT_COOLANT_TEMP_UNDER=0;
     }
 
     //Check temperature switch
     //Set fault bit if the switch has opened
     if (PIN_D_IN_1_CABINET_TEMP_SWITCH == CABINET_TEMP_SWITCH_FAULT) {
         _FAULT_CABINET_TEMPERATURE_SWITCH=1;
+    }
+    else{
+        _FAULT_CABINET_TEMPERATURE_SWITCH=0;
+    }
+
+    if(_FAULT_REGISTER){
+        _CONTROL_NOT_READY=1;
+    }
+    else{
+        _CONTROL_NOT_READY=0;
     }
 
 
@@ -306,6 +338,7 @@ void InitializeA36224(){
   global_data_A36224_000.analog_input_coolant_temp.over_trip_point_absolute=COOLANT_TEMPERATURE_OVER_TRIP_POINT;
   global_data_A36224_000.analog_input_flow_0.under_trip_point_absolute=MAGNETRON_FLOW_UNDER_TRIP_POINT;
   global_data_A36224_000.analog_input_flow_1.under_trip_point_absolute=LINAC_FLOW_UNDER_TRIP_POINT;
+  global_data_A36224_000.analog_input_flow_2.under_trip_point_absolute=CIRCULATOR_FLOW_UNDER_TRIP_POINT;
   global_data_A36224_000.analog_input_SF6_pressure.under_trip_point_absolute=SF6_PRESSURE_UNDER_TRIP_POINT;
 
 
