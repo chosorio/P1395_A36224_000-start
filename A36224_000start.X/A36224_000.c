@@ -189,8 +189,8 @@ void DoA36224_000(){
     else{
         _FAULT_CABINET_TEMPERATURE_SWITCH=0;
     }
-
-    if(_FAULT_REGISTER){
+//For this stage of testing, we are just using the board to make sure the magnetron is recieving flow.
+    if(_FAULT_MAGNETRON_COOLANT_FLOW){
         _CONTROL_NOT_READY=1;
     }
     else{
