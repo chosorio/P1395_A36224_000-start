@@ -510,14 +510,14 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_flow_2.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
       global_data_A36224_000.analog_input_flow_2.filtered_adc_reading = global_data_A36224_000.analog_input_flow_2.adc_accumulator;
       global_data_A36224_000.analog_input_flow_2.adc_accumulator = 0;
-
-      global_data_A36224_000.analog_input_flow_3.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
-      global_data_A36224_000.analog_input_flow_3.filtered_adc_reading = global_data_A36224_000.analog_input_flow_3.adc_accumulator;
-      global_data_A36224_000.analog_input_flow_3.adc_accumulator = 0;
-
-      global_data_A36224_000.analog_input_flow_4.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
-      global_data_A36224_000.analog_input_flow_4.filtered_adc_reading = global_data_A36224_000.analog_input_flow_4.adc_accumulator;
-      global_data_A36224_000.analog_input_flow_4.adc_accumulator = 0;
+//
+//      global_data_A36224_000.analog_input_flow_3.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
+//      global_data_A36224_000.analog_input_flow_3.filtered_adc_reading = global_data_A36224_000.analog_input_flow_3.adc_accumulator;
+//      global_data_A36224_000.analog_input_flow_3.adc_accumulator = 0;
+//
+//      global_data_A36224_000.analog_input_flow_4.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
+//      global_data_A36224_000.analog_input_flow_4.filtered_adc_reading = global_data_A36224_000.analog_input_flow_4.adc_accumulator;
+//      global_data_A36224_000.analog_input_flow_4.adc_accumulator = 0;
 
       global_data_A36224_000.analog_input_coolant_temp.adc_accumulator >>=3;  // This is now a 16 bit number average of previous 256 samples
       global_data_A36224_000.analog_input_coolant_temp.filtered_adc_reading = global_data_A36224_000.analog_input_coolant_temp.adc_accumulator;

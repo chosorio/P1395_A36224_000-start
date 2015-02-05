@@ -276,7 +276,8 @@ extern CoolingControlData global_data_A36224_000;
 #define CABINET_TEMPERATURE_OVER_TRIP_POINT         (45+273)*100    //Fault at 45 degrees C-> 1/100ths Kelvin
 #define COOLANT_TEMPERATURE_OVER_TRIP_POINT         (35+273)*100
 #define COOLANT_TEMPERATURE_UNDER_TRIP_POINT        (20+273)*100
-#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (.85*5.7*1000) //4.8 liters/minute
+//#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (.85*5.7*1000) //4.8 liters/minute
+#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (2*1000) //2.5 liters/minute for testing
 #define LINAC_FLOW_UNDER_TRIP_POINT                 (.85*11.3*1000)
 #define CIRCULATOR_FLOW_UNDER_TRIP_POINT            (.85*11.3*1000)
 #define SF6_PRESSURE_UNDER_TRIP_POINT               38*100          //38 psi
