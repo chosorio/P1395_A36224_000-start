@@ -2,6 +2,8 @@
 #include "MCP4822.h"
 #include "THERMISTOR_LOOKUP.h"
 #include "SF6_CONTROL.h"
+#include "ETM_EEPROM.h"
+#include "FIRMWARE_VERSION.h"
 
 _FOSC(ECIO & CSW_FSCM_OFF); 
 _FWDT(WDT_ON & WDTPSA_512 & WDTPSB_8);  // 8 Second watchdog timer
@@ -29,15 +31,9 @@ unsigned int control_state;
 //#define STATE_WAITING_FOR_CONFIG     0x20
 #define STATE_OPERATE                0x30
 
-unsigned int _EEDATA(2) SF6_bottle_counter_in_EE[1];
-_prog_addressT EE_addr;
-//unsigned int SF6_bottle_counter_in_RAM [1];
 
 int main(void) {
 
-_init_prog_address(EE_addr, SF6_bottle_counter_in_EE);
-//_memcpy_p2d16(SF6_bottle_counter_in_RAM, EE_addr, _EE_WORD);
-//SF6_bottle_counter_in_RAM[0]=SF6_bottle_counter_in_EE[0];
  control_state = STATE_STARTUP;
   while (1) {
     DoStateMachine();
@@ -53,7 +49,7 @@ void DoStateMachine(void){
 
         case STATE_OPERATE:
             DoA36224_000();
-            ETMCanDoCan();
+            ETMCanSlaveDoCan();
 
             break;
 
@@ -65,21 +61,21 @@ void DoStateMachine(void){
 
 void DoA36224_000(){
 
-    if(_T5IF){
-
-   _T5IF=0;
-
+  if(_T5IF){
+    
+    _T5IF=0;
+    
     //Convert Flow Meter readings to flow data
     ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_0);
     ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_1);
     ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_2);
-   // ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_3);//These aren't actually used. no need to scale garbage values.
-   // ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_4);
-
-
+    // ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_3);//These aren't actually used. no need to scale garbage values.
+    // ETMAnalogScaleCalibrateADCReading(&global_data_A36224_000.analog_input_flow_4);
+    
+    
     //Convert temperature sensors to digital
     //Uses an 8 bit lookup table, then linear interpolation to fill in the gaps.
-
+    
     //Convert Temperature readings
     //Cabinet
     global_data_A36224_000.analog_input_cabinet_temp.reading_scaled_and_calibrated=ConvertDigitalToTemp(global_data_A36224_000.analog_input_cabinet_temp.filtered_adc_reading);
@@ -99,10 +95,8 @@ void DoA36224_000(){
 
     // -------------------- CHECK FOR FAULTS ------------------- //
 
-    if (global_reset_faults) {
-      local_debug_data.debug_0++;
+    if (_SYNC_CONTROL_RESET_ENABLE) {
      _FAULT_REGISTER = 0x0000;
-      global_reset_faults = 0;
     }
     
     // Set the fault LED
@@ -198,15 +192,13 @@ void DoA36224_000(){
     }
 
 
+#define EEPROM_REGISTER_BOTTLE_COUNTER          0x0210
+
    DoSF6Control( );
    //Check pulse counter
    //Maybe we should make a pulse counter fault and check that?
-    _erase_eedata(EE_addr,_EE_WORD);
-    _wait_eedata();
-    _write_eedata_word(EE_addr, global_data_A36224_000.SF6_bottle_counter);
-    _wait_eedata();
-
-
+   ETMEEPromWriteWord(EEPROM_REGISTER_BOTTLE_COUNTER, global_data_A36224_000.SF6_bottle_counter);
+   
 
     local_debug_data.debug_8 = global_data_A36224_000.analog_input_flow_0.reading_scaled_and_calibrated;
     local_debug_data.debug_9 = global_data_A36224_000.analog_input_flow_1.reading_scaled_and_calibrated;
@@ -225,10 +217,11 @@ void DoA36224_000(){
 void InitializeA36224(){
 
 
+  etm_can_my_configuration.firmware_major_rev = FIRMWARE_AGILE_REV;
+  etm_can_my_configuration.firmware_branch = FIRMWARE_BRANCH;
+  etm_can_my_configuration.firmware_minor_rev = FIRMWARE_MINOR_REV;
+  
   // Initialize the Analog Input * Output Scaling
-
-
-
   global_data_A36224_000.analog_input_flow_0.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(FLOWMETER_SCALE_FACTOR);
   global_data_A36224_000.analog_input_flow_0.fixed_offset                    = 0;
   global_data_A36224_000.analog_input_flow_0.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
@@ -308,27 +301,9 @@ void InitializeA36224(){
   global_data_A36224_000.analog_output_cabinet_thermistor.enabled                         = 1;
 
   //Initialize SF6_pulse counter.Maybe this should actually be saved on ECB and sent down during startup.
-  //This is probably fine for now.
-  //global_data_A36224_000.SF6_pulse_counter=0;
-  
-
-  
-
-  //Read bottle counter from memory.
-  unsigned int temp_SF6_bottle_counter;
-  _memcpy_p2d16(&temp_SF6_bottle_counter, EE_addr, 2);
-//  if(temp_SF6_bottle_counter>700||temp_SF6_bottle_counter==0)
-//  {
-//      global_data_A36224_000.SF6_bottle_counter=700;
-//  }
-//  else{
-      global_data_A36224_000.SF6_bottle_counter=temp_SF6_bottle_counter;
-// }
-  //for now, I'm gonna have to set it, but I'll remove it and see if it still works
-
+  global_data_A36224_000.SF6_bottle_counter = ETMEEPromReadWord(EEPROM_REGISTER_BOTTLE_COUNTER);
 
   _FAULT_REGISTER=0;
-  _CONTROL_REGISTER=0;
   etm_can_status_register.data_word_A = 0x0000;
   etm_can_status_register.data_word_B = 0x0000;
 
@@ -421,7 +396,7 @@ void InitializeA36224(){
 
 
   // Initialize the CAN module
-  ETMCanInitialize();
+  ETMCanSlaveInitialize();
 
 
   // Flash LEDs at boot up
