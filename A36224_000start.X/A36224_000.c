@@ -49,7 +49,7 @@ void DoStateMachine(void){
 
         case STATE_OPERATE:
             DoA36224_000();
-            ETMCanSlaveDoCan();
+            //ETMCanSlaveDoCan();
 
             break;
 
@@ -102,9 +102,13 @@ void DoA36224_000(){
     // Set the fault LED
     if (_CONTROL_NOT_READY) {
       // The board is faulted
+        //This turns the light off
+        PIN_D_OUT_SPARE_OPTICAL=0;
       PIN_LED_I2_C = 0;
     } else {
-      PIN_LED_I2_C = 1;
+        //This turns the light on.
+        PIN_D_OUT_SPARE_OPTICAL=1;
+        PIN_LED_I2_C = 1;
     }
 
     unsigned int cabinet_temp_switch=PIN_D_IN_1_CABINET_TEMP_SWITCH;
@@ -396,7 +400,7 @@ void InitializeA36224(){
 
 
   // Initialize the CAN module
-  ETMCanSlaveInitialize();
+  //ETMCanSlaveInitialize();
 
 
   // Flash LEDs at boot up
