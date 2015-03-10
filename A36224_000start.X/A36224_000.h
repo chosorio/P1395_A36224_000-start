@@ -225,6 +225,7 @@
 #define PIN_D_OUT_2_UNUSED                          _LATD2
 #define PIN_D_OUT_3_UNUSED                          _LATD3
 //#define OLL_ENABLE_SUPPLY                         1
+#define PIN_D_OUT_SPARE_OPTICAL                     _LATC14
 
 #define PIN_LED_WATCHDOG                            _LATG12
 #define PIN_LED_COM                                 _LATG13
