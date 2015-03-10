@@ -511,6 +511,28 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
 
   }
 
+void _ISRNOPSV _IC3Interrupt(void) {
+  unsigned int timer_reading;
+  _IC3IF = 0;
+  timer_reading = IC3BUF;
+  
+  if (global_data_A36224_000.IC3_timer_roll >= 5) {
+    global_data_A36224_000.IC3_previous_period = 0xFFFF;
+  } else {
+    if ((global_data_A36224_000.IC3_previous_reading > timer_reading) && (global_data_A36224_000.IC3_timer_roll == 0)) {
+      global_data_A36224_000.IC3_timer_roll = 1;
+    }
+    global_data_A36224_000.IC3_previous_period = global_data_A36224_000.IC3_timer_roll * PR2;
+    global_data_A36224_000.IC3_previous_period += timer_reading;
+    global_data_A36224_000.IC3_previous_period -= global_data_A36224_000.IC3_previous_period;
+    global_data_A36224_000.IC3_previous_reading = timer_reading;
+  } 
+  
+  if (global_data_A36224_000.IC3_previous_period >= 0x7FFF) {
+    global_data_A36224_000.IC3_previous_period = 0x7FFF;
+  }
+  
+  global_data_A36224_000.IC3_timer_roll = 0;
 
-
-
+  global_data_A36224_000.IC3_filtered_period = RCFilterNTau(global_data_A36224_000.IC3_filtered_period, global_data_A36224_000.IC3_previous_period, 6);
+}

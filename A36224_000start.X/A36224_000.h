@@ -259,6 +259,12 @@ typedef struct {
   unsigned int SF6_pulse_counter;
   unsigned int SF6_bottle_counter;
 
+
+  unsigned int IC3_previous_reading;
+  unsigned int IC3_previous_period;
+  unsigned int IC3_filtered_period;
+  unsigned int IC3_timer_roll;
+
 } CoolingControlData;
 
 extern CoolingControlData global_data_A36224_000;
