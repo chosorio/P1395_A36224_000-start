@@ -41,6 +41,7 @@ int main(void) {
 }
 
 void DoStateMachine(void){
+    ClrWdt();
     switch(control_state){
         case STATE_STARTUP:
             InitializeA36224();
@@ -220,14 +221,14 @@ void DoA36224_000(){
 
 void InitializeA36224(){
 
-
+    _CONTROL_NOT_READY=0;
   etm_can_my_configuration.firmware_major_rev = FIRMWARE_AGILE_REV;
   etm_can_my_configuration.firmware_branch = FIRMWARE_BRANCH;
   etm_can_my_configuration.firmware_minor_rev = FIRMWARE_MINOR_REV;
   
   // Initialize the Analog Input * Output Scaling
   global_data_A36224_000.analog_input_flow_0.fixed_scale                     = MACRO_DEC_TO_SCALE_FACTOR_16(FLOWMETER_SCALE_FACTOR);
-  global_data_A36224_000.analog_input_flow_0.fixed_offset                    = 0;
+  global_data_A36224_000.analog_input_flow_0.fixed_offset                    = FLOWMETER_OFFSET;
   global_data_A36224_000.analog_input_flow_0.calibration_internal_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
   global_data_A36224_000.analog_input_flow_0.calibration_internal_offset     = 0;
   global_data_A36224_000.analog_input_flow_0.calibration_external_scale      = MACRO_DEC_TO_CAL_FACTOR_2(1);
