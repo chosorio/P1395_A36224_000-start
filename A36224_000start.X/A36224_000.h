@@ -275,7 +275,8 @@ extern CoolingControlData global_data_A36224_000;
 #endif
 
 //Scale factors
-#define FLOWMETER_SCALE_FACTOR              .1431*3.78541 //Converts to milliliters/minute
+#define FLOWMETER_SCALE_FACTOR              2.67e-5*3.78541*1000*5 //Converts to milliliters/minute
+#define FLOWMETER_OFFSET                    2244
 #define SF6_PRESSURE_SCALE_FACTOR           .23842 //Tested and working. Converts to centiPSI
 #define SF6_PRESSURE_OFFSET                 -10486 //Tested and working
 #define ANALOG_OUT_SCALE_FACTOR             .5 //Tested and working. Converts mV to Volts for Analog outputs
@@ -285,7 +286,7 @@ extern CoolingControlData global_data_A36224_000;
 #define COOLANT_TEMPERATURE_OVER_TRIP_POINT         (35+273)*100
 #define COOLANT_TEMPERATURE_UNDER_TRIP_POINT        (20+273)*100
 //#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (.85*5.7*1000) //4.8 liters/minute
-#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (2*1000) //2.5 liters/minute for testing
+#define MAGNETRON_FLOW_UNDER_TRIP_POINT             (4.0*1000) //2.5 liters/minute for testing
 #define LINAC_FLOW_UNDER_TRIP_POINT                 (.85*11.3*1000)
 #define CIRCULATOR_FLOW_UNDER_TRIP_POINT            (.85*11.3*1000)
 #define SF6_PRESSURE_UNDER_TRIP_POINT               38*100          //38 psi
