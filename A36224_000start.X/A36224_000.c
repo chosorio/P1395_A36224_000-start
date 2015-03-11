@@ -4,6 +4,7 @@
 #include "SF6_CONTROL.h"
 #include "ETM_EEPROM.h"
 #include "FIRMWARE_VERSION.h"
+#include "ETM_RC_FILTER.h"
 
 _FOSC(ECIO & CSW_FSCM_OFF); 
 _FWDT(WDT_ON & WDTPSA_512 & WDTPSB_8);  // 8 Second watchdog timer
@@ -41,8 +42,7 @@ int main(void) {
 }
 
 void DoStateMachine(void){
-    ClrWdt();
-    switch(control_state){
+     switch(control_state){
         case STATE_STARTUP:
             InitializeA36224();
             control_state=STATE_OPERATE;
@@ -50,7 +50,7 @@ void DoStateMachine(void){
 
         case STATE_OPERATE:
             DoA36224_000();
-            //ETMCanSlaveDoCan();
+            ETMCanSlaveDoCan();
 
             break;
 
@@ -64,6 +64,37 @@ void DoA36224_000(){
 
   if(_T5IF){
     
+
+    local_debug_data.debug_0 = global_data_A36224_000.IC3_previous_period;
+    local_debug_data.debug_1 = global_data_A36224_000.IC3_filtered_period;
+
+    //local_debug_data.debug_1 = ADCBUF1;
+    local_debug_data.debug_2 = ADCBUF2;
+    local_debug_data.debug_3 = ADCBUF3;
+    local_debug_data.debug_4 = ADCBUF4;
+    local_debug_data.debug_5 = ADCBUF5;
+    local_debug_data.debug_6 = ADCBUF6;
+    local_debug_data.debug_7 = ADCBUF7;
+
+
+
+
+    local_debug_data.debug_8 = global_data_A36224_000.analog_input_flow_0.reading_scaled_and_calibrated;
+    local_debug_data.debug_9 = global_data_A36224_000.analog_input_flow_1.reading_scaled_and_calibrated;
+    local_debug_data.debug_A = global_data_A36224_000.analog_input_flow_2.reading_scaled_and_calibrated;
+    local_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
+    local_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
+    local_debug_data.debug_D = global_data_A36224_000.SF6_pulse_counter;
+    
+    local_debug_data.debug_F = global_data_A36224_000.SF6_bottle_counter;
+    
+    
+    global_data_A36224_000.IC3_filtered_period = RCFilterNTau(global_data_A36224_000.IC3_filtered_period, global_data_A36224_000.IC3_previous_period, 6);
+
+
+
+    
+
     _T5IF=0;
     
     //Convert Flow Meter readings to flow data
@@ -205,17 +236,8 @@ void DoA36224_000(){
    ETMEEPromWriteWord(EEPROM_REGISTER_BOTTLE_COUNTER, global_data_A36224_000.SF6_bottle_counter);
    
 
-    local_debug_data.debug_8 = global_data_A36224_000.analog_input_flow_0.reading_scaled_and_calibrated;
-    local_debug_data.debug_9 = global_data_A36224_000.analog_input_flow_1.reading_scaled_and_calibrated;
-    local_debug_data.debug_A = global_data_A36224_000.analog_input_flow_2.reading_scaled_and_calibrated;
-    local_debug_data.debug_B = global_data_A36224_000.analog_input_coolant_temp.reading_scaled_and_calibrated;
-    local_debug_data.debug_C = global_data_A36224_000.analog_input_SF6_pressure.reading_scaled_and_calibrated;
-    local_debug_data.debug_D = global_data_A36224_000.SF6_pulse_counter;
-
-    local_debug_data.debug_F = global_data_A36224_000.SF6_bottle_counter;
-
  
-}
+  }
 
 }
 
@@ -401,7 +423,7 @@ void InitializeA36224(){
 
 
   // Initialize the CAN module
-  //ETMCanSlaveInitialize();
+  ETMCanSlaveInitialize();
 
 
   // Flash LEDs at boot up
@@ -432,6 +454,17 @@ void InitializeA36224(){
   __delay32(1000000);
   ClrWdt();
   PIN_LED_WATCHDOG = 1;
+
+  global_data_A36224_000.IC3_filtered_period = 0;
+
+
+#define INPUT_CAPTURE_CONFIG      0b0000000010000011   // TMR2, Interrupt every capture, Capture Every 1th rising edge
+
+  // Configure Input Capture Module
+  IC3CON = INPUT_CAPTURE_CONFIG;
+  _IC3IP = 3;
+  _IC3IF = 0;
+  _IC3IE = 1;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
@@ -463,15 +496,6 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
       global_data_A36224_000.analog_input_cabinet_temp.adc_accumulator  += ADCBUFE;
       global_data_A36224_000.analog_input_SF6_pressure.adc_accumulator  += ADCBUFF;
     }
-
-    local_debug_data.debug_1 = ADCBUF1;
-    local_debug_data.debug_2 = ADCBUF2;
-    local_debug_data.debug_3 = ADCBUF3;
-    local_debug_data.debug_4 = ADCBUF4;
-    local_debug_data.debug_5 = ADCBUF5;
-    local_debug_data.debug_6 = ADCBUF6;
-    local_debug_data.debug_7 = ADCBUF7;
-
 
 
     global_data_A36224_000.accumulator_counter += 1;
@@ -516,28 +540,32 @@ void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
 
   }
 
-void _ISRNOPSV _IC3Interrupt(void) {
+void  __attribute__((interrupt, no_auto_psv)) _IC3Interrupt(void) {
   unsigned int timer_reading;
+  unsigned int this_period;
   _IC3IF = 0;
   timer_reading = IC3BUF;
-  
+
+
   if (global_data_A36224_000.IC3_timer_roll >= 5) {
-    global_data_A36224_000.IC3_previous_period = 0xFFFF;
+    this_period = 0xFFFF;
   } else {
     if ((global_data_A36224_000.IC3_previous_reading > timer_reading) && (global_data_A36224_000.IC3_timer_roll == 0)) {
       global_data_A36224_000.IC3_timer_roll = 1;
     }
-    global_data_A36224_000.IC3_previous_period = global_data_A36224_000.IC3_timer_roll * PR2;
-    global_data_A36224_000.IC3_previous_period += timer_reading;
-    global_data_A36224_000.IC3_previous_period -= global_data_A36224_000.IC3_previous_period;
-    global_data_A36224_000.IC3_previous_reading = timer_reading;
+    this_period = global_data_A36224_000.IC3_timer_roll * PR2;
+    this_period += timer_reading;
+    this_period -= global_data_A36224_000.IC3_previous_reading;
   } 
   
+  if (this_period >= 100) {
+    global_data_A36224_000.IC3_previous_period = this_period;
+    global_data_A36224_000.IC3_previous_reading = timer_reading;
+    global_data_A36224_000.IC3_timer_roll = 0;    
+  }
+
   if (global_data_A36224_000.IC3_previous_period >= 0x7FFF) {
     global_data_A36224_000.IC3_previous_period = 0x7FFF;
   }
   
-  global_data_A36224_000.IC3_timer_roll = 0;
-
-  global_data_A36224_000.IC3_filtered_period = RCFilterNTau(global_data_A36224_000.IC3_filtered_period, global_data_A36224_000.IC3_previous_period, 6);
 }
